@@ -1,0 +1,17 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT task...
+sudo rmmod rcservo_task 2> /dev/null
+sudo insmod rcservo_task.ko || exit 1
+
+./rcservo_app
+
+echo removing RT task...
+sudo rmmod rcservo_task
+
+echo done
+
+exit 0

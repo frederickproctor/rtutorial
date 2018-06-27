@@ -1,0 +1,201 @@
+<html>
+<head>
+<title>EXAMPLE 1: PURE PERIODIC SCHEDULING OF A SINGLE TASK</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./basics.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex02_twoper.htm">[next]</a>
+
+<h1>Example 1: Pure Periodic Scheduling of a Single Task</h1>
+<p>
+This example demonstrates a single fixed-period task that toggles
+the speaker at 1 kHz, also demonstrating how to read and write I/O
+addresses. In this example we will introduce the basics of RT Linux,
+and refer to the <a href="../ex01_periodic/periodic_task.c">commented
+source code</a> of the example for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>In RT Linux, the real-time scheduler is driven by timer
+interrupts from the PC's 8254 Programmable Interval Timer (PIT) chip.
+<li>In <i>pure periodic mode</i>, the timer is programmed to expire at
+a fixed period. All tasks will run at a multiple of this period.
+<ul>
+<li>The advantage is that timer reprogramming is avoided, which saves
+about 2 microseconds.
+<li>The disadvantage is that tasks are forced to run at multiples of
+the fundamental period.
+</ul>
+<li>In <i>one-shot mode</i>, the timer is reprogrammed at the end of
+each task cycle, so that it expires exactly when the next task is
+scheduled to run.
+<ul>
+<li>The advantage is that tasks timing can vary dynamically, and new
+tasks can be added without regard to any fundamental period.
+<li>The disadvantage is that timer reprogramming overhead recurs
+continually.
+</ul>
+<li>In this example, we will show how a single task is set up to run
+in pure periodic mode.
+</ul>
+
+<h2>Setting Up a Single Periodic Task</h2>
+The relevant RTAI functions are documented in the <a href="manual.html">RTAI
+documentation</a>. In this example we will do the following:
+<ul>
+<li>Set up the timer with a fundamental period, in our case 1
+millisecond.
+<li>Define the task function, in our case
+toggling the speaker port.
+<li>Set up the task structure and fill in fields for the task code,
+its priority, size of stack and other information.
+<li>Schedule the task to run at a specified period, a multiple of the
+timer period.
+</ul>
+
+<h2>Setting Up the Timer</h2>
+<ul>
+<li>We set up the timer to expire in pure periodic mode by calling the
+functions
+<pre>
+void rt_set_periodic_mode(void);
+RTIME start_rt_timer(RTIME period);
+</pre>
+<li>'rt_set_periodic_mode()' establishes that the timer won't be
+reprogrammed after every task cycle. The value passed to
+'start_rt_timer()' is the period, of type RTIME "internal counts".
+<li>The function 
+<pre>
+RTIME nano2counts(int nanoseconds);
+</pre>
+can be used to convert time in nanoseconds to these RTIME internal
+count units.
+<li>The requested period is quantized to the resolution of the 8254 chip
+frequency (1,193,180 Hz). Any timing request not an integer multiple
+of the period is satisfied at the closest period tick.
+</ul>
+<h2>The Task Function</h2>
+<ul>
+<li>Each task is associated with a function that is called when the task
+is scheduled to run.
+<li>This function is a usual C function that typically reads some
+inputs, computes some outputs and waits for the next cycle.
+<li>In this example, the task function will toggle the PC speaker port
+by alternately setting or clearing bit 2 of the speaker port address,
+61 hex (0x61 in C). A web search on "<a
+href="http://www.google.com/search?q=PC+port+addresses">PC port
+addresses</a>" is a good source for programming 
+PC resources (parallel port, serial port, joystick, LEDs, etc.)
+<li>The task function should enter an endless loop, in which is does
+its work, then calls
+<pre>
+void rt_task_wait_period(void);
+</pre>
+to wait for the its next scheduled cycle. Typical code looks like
+this:
+<pre>
+void task_function(int arg)
+{
+  while (1) {
+    /*
+      Do your thing here
+     */
+
+    rt_task_wait_period();
+  }
+
+  return;
+}
+</pre>
+</ul>
+
+<h2>Setting Up the Task Structure</h2>
+<ul>
+<li>An RT_TASK data structure is used to hold all the information about a
+task:
+<ul>
+<li>the task function,
+<li> any initial argument passed to it,
+<li>the size of the stack allocated for its variables,
+<li>its priority,
+<li>whether or not it uses floating-point math,
+<li>and a "signal handler" that will be called when the task becomes active.
+</ul>
+<li>The task structure is initialized by calling
+<pre>
+rt_task_init(RT_TASK *task,
+             void *rt_thread, int data,
+             int stack_size, int priority,
+	     int uses_fp, void *sig_handler);
+</pre>
+<ul>
+<li>'task' is a pointer to an RT_TASK type structure whose space must
+be provided by the application. It must be kept during the whole
+lifetime of the real time task and cannot be an automatic
+variable.
+<li>'rt_thread' is the entry point of the task
+function.
+<li>'data' is a single integer value passed to the new task.
+<li>'stack_size' is the size of the stack to be used by
+the new task (see Example 9 for information on computing stack size).
+<li>'priority' is the priority to be given the task. The highest
+priority is 0, while the lowest is RT_LOWEST_PRIORITY (1,073,741,823).
+<li>'uses_fp' is a flag. Nonzero value indicates
+that the task will use floating point, and the scheduler should make
+the extra effort to save and restore the floating point registers.
+<li>'sig_handler' is a
+function that is called, within the task environment and with
+interrupts disabled, when the task becomes the current running
+task after a context switch.
+</ul>
+<li>The newly created real time task is initially in a suspended
+state. It is can be made active either with
+'rt_task_make_periodic()', 'rt_task_make_periodic_relative_ns()' or
+'rt_task_resume()'.
+</ul>
+
+<h2>Scheduling the Task</h2>
+<ul>
+<li>The task can now be started by passing its filled-in RT_TASK
+structure to the function
+<pre>
+int rt_task_make_periodic(RT_TASK *task,
+                          RTIME start_time,
+			  RTIME period);
+</pre>
+<ul>
+<li>'task' is the address of the RT_TASK structure,
+<li>'start_time' is the absolute time, in RTIME units, when the task
+should begin execution. Typically this is "now" ('rt_get_time()').
+<li>'period' is the task's period, in RTIME units, which will be
+rounded to the nearest multiple of the fundamental timer period.
+</ul>
+<li>The task will now execute indefinitely every 'period' counts.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex01_periodic' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Single Periodic Task" button.
+<p>You'll hear a tone corresponding to 1 KHz toggling (500 Hz for a
+full period) for about 10 seconds.
+
+<p><a href="../ex01_periodic/periodic_task.c">See the Code</a>
+
+<hr>
+<a href="./ex02_twoper.htm">Next: Example 2: Pure Periodic Scheduling of Two Tasks</a>
+<p><a href="./basics.htm">Back: The Basics of Real-Time Linux</a>
+
+</body>
+</html>

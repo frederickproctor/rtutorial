@@ -1,0 +1,98 @@
+<html>
+<head>
+<title>EXAMPLE 2: PURE PERIODIC SCHEDULING OF TWO TASKS</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex01_periodic.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex03_variable.htm">[next]</a>
+
+<h1>Example 2: Pure Periodic Scheduling of Two Tasks</h1>
+<p>
+This example demonstrates two periodic tasks, one that toggles the
+speaker port and another that varies the frequency of toggling.
+In this example we will expand the number of tasks and use a simple
+shared variable. Refer to the <a
+href="../ex02_twoper/twoper_task.c">commented 
+source code</a> of the example for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>Any number of tasks may be scheduled, up to memory limits (there
+is no predefined maximum)
+<li>Tasks may share variables, since they share the same address space
+<ul>
+<li>In general, some care must be taken to ensure "mutual exclusion,"
+so that one task's actions on shared data aren't interrupted by
+another's
+<li>For small data types (char, int) that are acted on "atomically,"
+i.e., whose reads and writes can't be interrupted, no worries
+<li>For large types (structures, arrays), you need to use semaphores
+or other mechanisms, described in <a href="ex06_shm.htm#MUTEX">Example 6: Shared Memory</a>
+</ul>
+<li>For this example, one task runs at a fixed 100 microsecond period,
+and toggles the speaker port at intervals determined by a delay
+count. The larger the count, the lower the audible frequency.
+<li>A second task runs at a fixed 1 second period, and changes the
+delay count each time, so you will hear the frequency change each second.
+<li>The delay count is a shared variable, an 'int', so no worries
+about interrupted reads/writes
+<li>Since the task timing need not vary, the tasks both run in pure
+periodic mode, using the shortest period of the two tasks as the base
+<li>The frequency will continue to drop indefinitely as the delay
+count increases. The 'run' script in the example directory lets it go
+for 10 seconds.
+</ul>
+
+<h2>Setting up the Tasks</h2>
+<ul>
+<li>With two or more periodic tasks, you'll need to determine the base
+period, multiples of which will be allowable for each task's period.
+<ul>
+<li>In our case, we have a 100 microsecond task and a 1 second task,
+so the base period is 100 microseconds.
+<li>In general, you'll need to find the greatest common divisor of all
+your desired task periods.
+<li>Practically speaking, the lower bound on the base period is about
+10 microseconds.
+</ul>
+<li>The tasks are scheduled according to priority. If a task is ready
+to run (its period has transpired), it can only interrupt tasks of
+lower priority. A higher priority task will run its cycle to
+completion. 
+<ul>
+<li>Recall from Example 1 that the lowest priority is
+RT_LOWEST_PRIORITY, a large positive number, and that priorities are
+higher as the numbers get lower, down to 0 as the highest-priority
+task.
+<li>In our case, we'll run the slowest task at
+RT_LOWEST_PRIORITY, and the fastest task at <nobr>RT_LOWEST_PRIORITY-1</nobr>.
+</ul>
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex02_twoper' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Two Periodic Tasks" button.
+<p>You'll hear a series of tones for about 10 seconds, starting at 5
+KHz acoustically and dropping in frequency as the second task
+increases the delay time used by the first.
+
+<p><a href="../ex02_twoper/twoper_task.c">See the Code</a>
+
+<hr>
+<a href="./ex03_variable.htm">Next: Example 3, Variable Task Timing</a>
+<p><a href="./ex01_periodic.htm">Back: Example 1, A Single Periodic Task</a>
+
+</body>
+</html>

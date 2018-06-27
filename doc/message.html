@@ -1,0 +1,418 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Messages</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rt_send"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_send - send a message
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_send (RT_TASK* </B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_send</b> sends the message <I>msg</I> to the task <I>task</I>.
+If the receiver task is ready to get the message <b>rt_send</b> returns
+immediately. Otherwise the caller task is blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If the caller is unblocked but message has not been sent (e.g. the
+task <I>task</I> was killed before receiving the message) 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+        The receiver task was killed before receiving the message.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_send_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_send_if - send a message if possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_send_if (RT_TASK* </B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_send_if</b> tries to send the message <I>msg</I> to the task <I>task</I>.
+The caller task is never blocked.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If message has not been sent, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+	The task <i>task</i> was not ready to receive the message.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_send_until"></A>
+<A NAME="rt_send_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_send_until, rt_send_timed - send a message with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_send_until (RT_TASK* </B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>, RTIME </b><i>time</i><b>);</B>
+<p>
+<B>RT_TASK* rt_send_timed (RT_TASK* </B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>, RTIME </b><i>delay</i><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_send_until</b> and <b>rt_send_timed</b> send the message <I>msg</I>
+to the task <I>task</I>.
+If the receiver task is ready to get the message these functions return
+immediately. Otherwise the caller task is blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+
+In this case these functions return if
+<ul>
+<li> The caller task is in the first place of the waiting queue and
+        the receiver gets the message;
+<li> Timeout occurs;
+<li> An error occurs (e.g. the receiver task is killed);
+</ul>
+
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If message has not been sent, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+	Operation timed out, message was not delivered.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_receive"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_receive - receive a message
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_receive (RT_TASK* </B><I>task</I><B>,
+	unsigned int *</B><I>msg</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_receive</b> gets a message from the task specified by
+<I>task</I>. If <I>task</I> is equal to 0, the caller accepts message
+from any task.
+If there is a pending message, <b>rt_receive</b> returns
+immediately. Otherwise the caller task is blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+<br>
+<i>msg</i> points to a buffer provided by the caller.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, a pointer to the sender task is returned.
+If the caller is unblocked but no message has been received (e.g. the
+task <I>task</I> was killed before sending the message) 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+        The sender task was killed before sending the message.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of returned task pointer cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_receive_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_receive_if - receive a message if possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_receive_if (RT_TASK* </B><I>task</I><B>,
+	unsigned int *</B><I>msg</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_receive_if</b> tries to get a message from the task specified by
+<I>task</I>. If <I>task</I> is equal to 0, the caller accepts message
+from any task.
+The caller task is never blocked.
+<br>
+<i>msg</i> points to a buffer provided by the caller.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, a pointer to the sender task is returned.
+If no message has been received, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+	There was no message to receive.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of returned task pointer cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_receive_until"></A>
+<A NAME="rt_receive_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_receive_until, rt_receive_timed - receive a message with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK* rt_receive_until (RT_TASK* </B><I>task</I><B>,
+	unsigned int *</B><I>msg</I><B>, RTIME </b><i>time</i><b>);</B>
+<p>
+<B>RT_TASK* rt_receive_timed (RT_TASK* </B><I>task</I><B>,
+	unsigned int *</B><I>msg</I><B>, RTIME </b><i>delay</i><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_receive_until</b> and <b>rt_receive_timed</b> receive a message
+from the task specified by <I>task</I>. If <I>task</I> is equal to 0,
+the caller accepts message from any task.
+If there is a pending message, these functions return
+immediately. Otherwise the caller task is blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+
+In this case these functions return if
+<ul>
+<li> The caller task is in the first place of the waiting queue and
+        the sender sends a message;
+<li> Timeout occurs;
+<li> An error occurs (e.g. the sender task is killed);
+</ul>
+
+<i>msg</i> points to a buffer provided by the caller.
+<br>
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, a pointer to the sender task is returned.
+If no message has been received, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+	Operation timed out, no message was received.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of returned task pointer cannot be
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#message">[return to index]</A></p>
+
+</BODY>
+</HTML>

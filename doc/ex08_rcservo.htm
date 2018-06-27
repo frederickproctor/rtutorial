@@ -1,0 +1,87 @@
+<html>
+<head>
+<title>EXAMPLE 8: RADIO-CONTROLLED AIRPLANE SERVOMOTOR CONTROL</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex07_sem.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex09_ledclock.htm">[next]</a>
+
+<h1>Example 8: Radio-Controlled Airplane Servomotor Control</h1>
+<p>
+This example demonstrates the control of a pair of radio-controlled (RC)
+airplane servomotors via the parallel port. The motors used are Futaba
+S3003 motors, but the protocol is standard and works with most RC
+servomotors.
+<ul>
+<li>RC servomotors use pulse-width protocol, where the width of the
+pulse determines the angular position of the motor.
+<li>The pulses repeat every 20 milliseconds. A pulse width of 1
+millisecond signals mid-range position. Varying this between 0 and 2
+milliseconds sweeps the motor through its angular range.
+</ul>
+<table>
+<tr>
+<td><img src="./futaba.jpg" width="200"></td>
+<td><img src="./uln2003a.png" width="200"></td>
+<td>
+Futaba S3003 RC
+Servo with a 3-wire interface. The red wire is power, 4.8V to 6V; the
+black wire is ground; and the white wire is the signal, 0- to 2
+millisecond pulses 20 milliseconds apart.
+<p>The parallel port can't drive this motor directly. Use a Darlington
+pair line-driver chip, e.g., ULN2003. Connections, parallel port (PPT)
+to ULN2003:
+<p>PPT pin 2 to ULN2003 pin 1, PPT pin 3 to ULN2003 pin 2
+<p>ULN2003 pin 8 to ground, pin 16 to 20 K-ohm to +5V, pin 15 to 20
+K-ohm to +5V
+<p>Futaba red wires to +5V, black to ground, first motor's white to
+ULN2003 pin 16, second motor's white to ULN2003 pin 15
+</td>
+</tr>
+</table>
+Refer to the <a
+href="../ex08_rcservo/rcservo_task.c">commented real-time
+source code</a> and the <a
+href="../ex08_rcservo/rcservo_app.c">commented application
+source code</a> for the details.
+<h2>Principle of Operation</h2>
+<ul>
+<li>No new RT Linux concepts are introduced here. We're putting
+together what we've learned in the previous examples.
+<li>Three tasks are run in one-shot mode. One task always runs at 20
+milliseconds and sets all pulses high.
+<li>That task also schedules the other tasks to run some time later,
+0- to 2 milliseconds depending on the commanded position. These other
+tasks set their pulse low.
+<li>The commanded position is set by a FIFO from a Linux
+application. A handler on the FIFO sets global variables for the pulse
+periods.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex08_rcservo' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "RC Servo Motors" button.
+<p>A small GUI will pop up, with sliders that let you change the
+positions. 
+
+<p><a href="../ex08_rcservo/rcservo_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex08_rcservo/rcservo_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ex09_ledclock.htm">Next: Example 9, LED Wand Clock</a>
+<p><a href="./ex07_sem.htm">Back: Example 7, Semaphores</a>
+
+</body>
+</html>

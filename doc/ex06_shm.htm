@@ -1,0 +1,133 @@
+<html>
+<head>
+<title>EXAMPLE 6: SHARED MEMORY COMMUNICATION BETWEEN RTL AND LINUX</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex05_isr.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex07_sem.htm">[next]</a>
+
+<h1>Example 6: Shared Memory Communication Between RTL and Linux</h1>
+This example demonstrates the use of "shared memory" to communicate between
+RT Linux tasks and normal Linux processes. Shared memory is exactly
+that, memory shared between two or more tasks or processes. It is
+analogous to Unix "interprocess communication" (IPC) shared memory. 
+<p>Refer to the <a
+href="../ex06_shm/shm_task.c">commented real-time task
+source code</a> and <a
+href="../ex06_shm/shm_app.c">commented Linux process
+source code</a> for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>Shared memory is typically used to hold a data structure whose
+members are read and written by two different processes.
+<li>Unlike FIFOs, shared memory is not queued. Any data written to
+shared memory overwrites the previous data.
+<li>Shared memory can also be accessed piecewise. Individual members
+of a large shared memory structure can be read and written
+independently.
+<li>Because it is a shared resource, care must be taken to ensure data
+consistency. 
+In RT Linux, a real-time task can interrupt a Linux processes, but
+not vice-versa. There are two cases for a reader-writer pair:
+<ul>
+<li>the RT task is the reader, and it interrupts the Linux process
+during its write. Here, the RT task will see an inconsistent data
+structure, with fresh data at the beginning and stale data at the end.
+<li>The RT task is the writer, and it interrupts the Linux process
+during its read. Here, the Linux process will see an inconsistent data
+structure, with stale data at the beginning and fresh data at the
+end.
+</ul>
+<li>In this example, a single RT Linux task writes a data array to
+shared memory periodically, and a single Linux process reads this data
+periodically and prints the results. Various types of data consistency
+techniques are demonstrated, as discussed in the following section on
+<a href="mutex.htm">Data Consistency Techniques</a>.
+</ul>
+
+<h2>Creating Shared Memory</h2>
+<ul>
+<li>On the real-time side, shared memory is created by calling
+'rtai_kmalloc()', the RTAI version of the kernel 'malloc' function, to
+allocate a block of shared memory. For example,
+<pre>
+struct mystruct * ptr;
+ptr = rtai_kmalloc(101, sizeof(struct mystruct));
+</pre>
+allocates a block of shared memory for the data structure 'mystruct',
+registered with key 101, and returns a pointer to the shared
+memory. A null pointer is returned in the case of an error.
+<ul>
+<li>The key, 101 in the example, serves to identify this shared
+memory. Other processes who want to share this will use the same key.
+<li>This function is similar to the C function 'malloc()' ("memory
+allocate"). You pass it the size, it returns a pointer.
+<li>In RTAI, the shared memory must first be created by the real-time
+task before the Linux task accesses it.
+</ul>
+<li>On the Linux side, shared memory is accessed by calling
+'rtai_malloc()'. Strictly speaking,
+this is not an "allocation," since the memory is allocated by the
+real-time task first. This is really a "connection". For example,
+<pre>
+struct mystruct * ptr;
+ptr = rtai_malloc(101, sizeof(struct mystruct));
+</pre>
+returns a pointer to the shared memory allocated by the previous
+'rt_kmalloc()' call in the real-time process.
+<ul>
+<li>Note the shared key, 101, used by both sides. You can have any
+number of shared memory segments, each with its own unique id that is
+shared among the participants. 
+<li>The actual pointer value will in general be different for the
+tasks that share memory.
+</ul>
+<li>Once created, the shared memory pointer can be referenced just
+like any pointer. The results are immediately available to others who
+share the memory.
+</ul>
+
+<h2>Deleting Shared Memory</h2>
+<ul>
+<li>On the real-time side, shared memory is deleted by calling
+'rtai_kfree()', the RTAI version of the kernel 'free()' function,
+using the same key as was used to create the shared memory:
+<pre>
+rtai_kfree(101);
+</pre>
+<li>Likewise, on the Linux side, call 'rtai_free()' with both the key
+and the pointer:
+<pre>
+rtai_free(101, ptr);
+</pre>
+<li>These should be done in the reverse order as the creation: the
+Linux process should free first, then the RT task.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex06_shm' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Shared Memory" button.
+You'll see diagnostics messages printing out.
+
+<p><a href="../ex06_shm/shm_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex06_shm/shm_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ex07_sem.htm">Next: Example 7, RTL Semaphores</a>
+<p><a href="./ex05_isr.htm">Back: Example 5, Interrupt Service Routine</a>
+
+</body>
+</html>

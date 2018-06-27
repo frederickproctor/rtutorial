@@ -1,0 +1,498 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - (new)FIFOs</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rtf_create"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_create - create a real-time FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_create (unsigned int </B><I>fifo</I><B>,
+	int </B><I>size</I><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_create</b> creates a real-time fifo (RT-FIFO) of initial size <I>size</I>
+and assigns it the identifier <I>fifo</I>.
+<BR>
+<I>fifo</I> is a small postive integer what identifies the fifo on
+further operations. It have to be less than RTF_NO.
+<br>
+<i>fifo</i> may refer an existing RT-FIFO. In this case the size is
+adjusted if necessary.
+<p>
+The RT-FIFO is a mechanism, implemented as a character
+device, to communicate between real-time tasks and ordinary Linux processes.
+The rtf_* functions are used by the real-time tasks; Linux processes use
+standard character device access functions such as read, write, and select.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <I>size</I> is returned. On failure, a negative
+value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-ENOMEM
+	</dt><dd>
+	<I>size</I> bytes could not be allocated for the RT-FIFO.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+If resizing was unsuccesful, no error code is returned.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<!--
+
+<A NAME="rtf_open_sized"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_open_sized - open a real-time FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_open_sized (const char *</b><i>dev</i><b>,
+	int </b><i>flags</i><b>,
+	int </B><I>size</I><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<p>
+<b>rtf_open_sized</b> is called by Linux processes. It is a variant
+of the ordinary <b>open</b> system call. FIFOs opened by <b>open</b>
+has size DEFAULT_SIZE which is a compile time option. With
+<b>rtf_open_sized</b> the caller could set the FIFO size to any value.
+
+<br>
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+<b>rtf_open_sized</b> returns the new file descriptor, or -1 if an
+error occurred (in which  case,  errno  is  set  appropriately).
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	See <b>open(2)</b>.
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+If setting size to <i>size</i> is unsuccesful, no error code is returned.
+<p>
+At this moment <b>rtf_open_sized</b> does not work as expected.
+<br>
+Current code:
+<pre>
+static inline int rtf_open_sized(const char *dev,
+                                 int perm, int size)
+{
+        int fd;
+        if ((fd = open(dev, perm)) < 0) {
+                ioctl(fd, OPEN_SIZED, size);
+        }
+        return fd;
+}
+</pre>
+</dd></dl>
+
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_destroy"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_destroy - close a real-time FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_destroy (unsigned int </B><I>fifo</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_destroy</b> closes a real-time fifo previously created/reopened with
+<b>rtf_create</b> or <b>rtf_open_sized</b>.
+An internal mechanism counts how many times a fifo was opened.
+Opens and closes must be in pair.
+<b>rtf_destroy</b> should be called as many times as <b>rtf_create</b>
+was. After the last close the fifo is really destroyed.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, a non-negative number is returned. Actually it is the
+open counter, that means how many times <b>rtf_destroy</b> should
+be called yet to destroy the fifo.
+On failure, a negative value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> refers to not an open fifo.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_reset"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_reset - reset a real-time FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_reset (unsigned int </B><I>fifo</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_reset</b> resets RT-FIFO <I>fifo</I> by setting its buffer pointers
+to zero, so that any existing data is discarded and the fifo started anew
+like at its creations.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, 0 is returned. On failure, a negative
+value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> refers to not an open fifo.
+	</dd></dl>
+	<dl><dt>
+	-EFAULT
+	</dt><dd>
+	Operation was unsuccesful.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_resize"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_resize - resize a real-time FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_resize (unsigned int </B><I>fifo</I><B>, int </B><I>size</I><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_resize</b> modifies the real-time fifo <I>fifo</I>, previously
+created with , <b>rtf_create</b>, to have a new size of <I>size</I>.
+Any data in the fifo is discarded.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <I>size</I> is returned. On failure, a negative
+value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> refers to not an open fifo.
+	</dd></dl>
+	<dl><dt>
+	-ENOMEM
+	</dt><dd>
+	<I>size</I> bytes could not be allocated for the RT-FIFO.
+	Fifo size is unchanged.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_put"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_put - write data to FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_put (unsigned int </B><I>fifo</I><B>,
+	void *</B><I>buf</I><B>,
+	int </B><I>count</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_put</b> tries to write a block of data to a real-time fifo previously
+created with <b>rtf_create</b>.
+<BR><I>fifo</I> is the ID with which the RT-FIFO was created.
+<BR><I>buf</I> points the block of data to be written.
+<br><I>count</I> is the size of the block in bytes.
+<BR>This mechanism is available only to real-time tasks;
+Linux processes use a<code> write </code>
+to the corresponding<code> /dev/fifo<i>&lt;n&gt;</i> </code>device to enqueue
+data to a fifo. Similarly, Linux processes use<code> read </code>
+ or similar functions
+to read the data previously written via <b>rtf_put</b>
+by a real-time task.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of bytes written is returned.
+Note that this value may be less than <I>count</I> if <I>count</I> bytes
+of free space is not available in the fifo.
+On failure, a negative value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> refers to not an open fifo.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_get"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_get - read data from FIFO
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_get (unsigned int </B><I>fifo</I><B>,
+	void *</B><I>buf</I><B>,
+	int </B><I>count</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_get</b> tries to read a block of data from a real-time fifo previously
+created with a call to <b>rtf_create</b>.
+<BR><I>fifo</I> is the ID with which the RT-FIFO was created.
+<BR><I>buf</I> points a buffer of <I>count</I> bytes size provided
+by the caller. This
+mechanism is available only to real-time tasks; Linux processes use a<code>
+ read </code>from the corresponding fifo device to dequeue data from a fifo.
+Similarly, Linux processes use<code> write </code>or similar functions to
+write the data to be read via <b>rtf_put</b> by a real-time task.
+<p>
+<b>rtf_get</b> is often used in conjunction with <b>rtf_create_handler</b>
+to process data received asynchronously from a Linux process. A handler
+is installed via <b>rtf_create_handler</b>;
+this handler calls <b>rtf_get</b> to receive
+any data present in the RT-FIFO as it becomes available. In this way, polling
+is not necessary; the handler is called only when data is present in the
+fifo.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the size of the received data block is returned.
+Note that this value may be less than <I>count</I> if <I>count</I> bytes
+of data is not available in the fifo.
+On failure, a negative value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-ENODEV
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO.
+	</dd></dl>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> refers to not an open fifo.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rtf_create_handler"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rtf_create_handler - install a FIFO handler function
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_fifos.h"
+<p>
+<B>int rtf_create_handler (unsigned int </B><I>fifo</I><B>,
+	int (*</B><I>handler</I><B>)(unsigned int </B><I>fifo</I><B>));</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rtf_create_handler</b> installs a handler which is executed when data
+is written to or read from a real-time fifo.
+<BR><I>fifo</I> is an RT-FIFO that must have previously been
+created with a call to <B>rtf_create</B>.
+<BR>The function pointed by <I>handler</I> is called whenever a Linux process
+accesses that fifo.
+<p>
+<b>rtf_create_handler</b> is often used in conjunction with
+<b>rtf_get</b> to process data acquired asynchronously
+from a Linux process. The installed handler calls <b>rtf_get</b> when data is
+present. Because the handler is only executed when there is activity on
+the fifo, polling is not necessary.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, 0 is returned. On failure, a negative value is
+returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>fifo</I> is greater than or equal to RTF_NO,
+	or <I>handler</I> is NULL.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+<b>rtf_create_handler</b> does not check if FIFO referred by <i>fifo</i>
+is open or not. The next call of <b>rtf_create</b> will uninstall the handler
+just "installed".
+</dd></dl>
+<p align=right><A HREF="manual.html#fifo">[return to index]</A></p>
+
+</BODY>
+</HTML>

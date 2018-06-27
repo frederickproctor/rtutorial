@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT task...
+sudo rmmod ledclock_task 2> /dev/null
+sudo insmod ledclock_task.ko || exit 1
+
+echo type text to view, RETURN to clear, CTRL-C when done...
+./ledclock_app
+
+echo removing RT task...
+sudo rmmod ledclock_task
+
+echo done
+
+exit 0

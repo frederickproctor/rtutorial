@@ -1,0 +1,17 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl 2> /dev/null || exit 1
+
+echo loading RT task...
+sudo rmmod fifo_task 2> /dev/null
+sudo insmod fifo_task.ko || exit 1
+
+./fifo_app
+
+echo removing RT task...
+sudo rmmod fifo_task
+
+echo done
+
+exit 0

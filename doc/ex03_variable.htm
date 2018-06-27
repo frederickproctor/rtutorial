@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>EXAMPLE 3: VARIABLE-PERIOD SCHEDULING OF A SINGLE TASK</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex02_twoper.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex04_fifo.htm">[next]</a>
+
+<h1>Example 3: Variable-Period Scheduling of a Single Task</h1>
+<p>
+This example demonstrates a single task that toggles the
+speaker port with a continuously varying frequency. Since there is no
+identifiable base period for the timer, we'll put it in one-shot mode
+and change the task period each time it runs. This adds some minor
+overhead (about 2 microseconds) each cycle for timer reprogramming,
+but it avoids quantization of the speaker frequency to some base timer
+frequency. Refer to the <a
+href="../ex03_variable/variable_task.c">commented 
+source code</a> of the example for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>In the previous examples, we established each pure periodic task's
+period as an argument to 'rt_task_make_periodic()'. This was done once
+at the beginning, in 'init_module()'. 
+<li>Then, in the task code, we called 'rt_task_wait_period()' at the
+end of each cycle, to put it to sleep and await the next cycle.
+<li>In the task code here, we'll call 'rt_sleep(RTIME delay)' with an
+explicit delay, which can vary each cycle.
+<li>We still call 'rt_task_make_periodic()' to start the task, but we
+can use a dummy value as the base period, since there is none.
+</ul>
+
+<h2>Setting up the Timer</h2>
+<ul>
+<li>
+Set up the timer to expire in one-shot mode by calling
+<pre>
+void rt_set_oneshot_mode(void);
+</pre>
+This sets the one-shot mode for the timer. The 8254 timer chip
+will be reprogrammed each task cycle, at a cost of about 2 microseconds.
+<li>Start the one-shot timer by calling
+<pre>
+RTIME start_rt_timer(RTIME count);
+</pre>
+with 'count' set to 1 as a dummy nonzero value provided for the period
+since we don't have one. We habitually use a nonzero value since 0
+could mean disable the timer to some.
+</ul>
+
+<h2>Setting up the Task</h2>
+<ul>
+<li>The task is set up as before, calling 'rt_task_init()' and
+'rt_task_make_periodic()'.
+<li>In the task function, however, we need to call 'rt_sleep(delay)'
+with 'delay' set to the time, in counts, that we want to delay the
+task. Calling 'rt_task_wait_period()', as before, will cause it to
+sleep for the dummy period provided earlier, which is not what we
+want.
+<li>The sound will now sweep continuously up and down as the delay is
+changed.
+</ul>
+
+<h2>The Task Function and Timing</h2>
+<ul>
+<li>Each cycle, the task function computes the amount of delay until
+the next cycle,
+following a relatively simple algorithm that adds or subtracts some
+increment tuned to sound good for this example.
+<li>In order to improve the timing, the task function reads its actual
+start time to use as a basis for computing the delay. While this is
+not really necessary for this example, it introduces the function
+<pre>
+RTIME rt_get_time(void);
+</pre>
+which returns the number of counts since RTAI booted, as an RTIME,
+which is a long long int, rolling over into negative territory at 63
+bits.
+<li>In periodic mode, a 'count' is one tick of the 8254 timer chip, or
+1,193,180 counts per second. This gives rollover at
+<nobr>2<sup>63</sup>/1,193,180</nobr> seconds, or over 200,000
+years. No need to worry about rollover here.
+<li>In one-shot mode, a 'count' is one tick of the CPU clock, say
+1 billion counts per second on a 1 GHz machine. This gives rollover at
+<nobr>2<sup>63</sup>/1,000,000,000</nobr> seconds, or about 70
+years. No need to worry about rollover here either.
+<li>On an embedded system powered up for many years, you'd need to
+worry. This means checking if a new timestamp was less than a previous
+one, and subtracting the difference from the range to get the true
+difference.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex03_variable' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Single Variable-Period Task" button.
+<p>You'll hear a continuously varying tone for about 10 seconds.
+
+<p><a href="../ex03_variable/variable_task.c">See the Code</a>
+
+<hr>
+<a href="./ex04_fifo.htm">Next: Example 4, FIFOs</a>
+<p><a href="./ex02_twoper.htm">Back: Example 2, Pure Periodic
+Scheduling of Two Tasks</a>
+
+</body>
+</html>

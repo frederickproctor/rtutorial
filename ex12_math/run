@@ -1,0 +1,21 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT task...
+sudo rmmod math_task 2> /dev/null
+sudo insmod math_task.ko || exit 1
+
+./math_app &
+
+sleep 10
+
+kill -INT $!
+
+echo removing RT task...
+sudo rmmod math_task
+
+echo done
+
+exit 0

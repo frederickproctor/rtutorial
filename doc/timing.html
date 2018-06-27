@@ -1,0 +1,267 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Timer functions</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+<A NAME="rt_set_oneshot_mode"></a>
+<A NAME="rt_set_periodic_mode"></a>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_set_oneshot_mode, rt_set_periodic_mode - set timer mode
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_set_oneshot_mode (void);</B>
+<p>
+<B>void rt_set_periodic_mode (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_set_oneshot_mode</b> sets the oneshot mode for the timer.
+It consists in a variable timing based on the cpu clock frequency.
+This allows task to be timed arbitrarily. It must be called before
+using any time related function, including conversions.
+<p>
+<b>rt_set_periodic_mode</b> sets the periodic mode for the timer.
+It consists of a fixed frequency timing of the tasks in multiple of
+the period set with a call to <b>start_rt_timer</b>. The resolution
+is that of the 8254 frequency (1193180 hz). Any timing request not an integer
+multiple of the period is satisfied at the closest period tick. It is the
+default mode when no call is made to set the oneshot mode.
+<p>
+Oneshot mode can be set initially also with <b>OneShot</b>
+command line parameter of the <b>rtai_sched</b> module.
+</dd></dl>
+
+<dl><dt>
+<H3>NOTE</H3>
+</dt><dd>
+Stopping the timer by <b>stop_rt_timer</b> sets the timer back
+into its defult (periodic) mode.
+Call <b>rt_set_oneshot_mode</b> before each <b>start_rt_timer</b>
+if it required.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="start_rt_timer"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+start_rt_timer, stop_rt_timer - start/stop timer
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RTIME start_rt_timer (int </B><I>period</I><B>);</B>
+<p>
+<B>void stop_rt_timer (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>start_rt_timer</b> starts the timer with a period <I>period.</I>
+The period is in internal count units and is required
+only for the periodic mode. In the oneshot the parameter value is ignored.
+<p>
+<b>stop_rt_timer</b> stops the timer. The timer mode is set to periodic.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+The period in internal count units.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="count2nano"></A>
+<A NAME="nano2count"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+count2nano, nano2count - convert internal count units to nanosecs and back
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RTIME count2nano (RTIME </B><I>timercounts</I>)<B>;</B>
+<p>
+<B>RTIME nano2count (RTIME </B><I>nanosecs</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>count2nano</b> converts the time of <I>timercounts</I> internal
+count units into nanoseconds.
+<p>
+<b>nano2count</b> converts the time of <i>nanosecs</i> nanoseconds
+into internal counts units.
+<p>
+Remember that the count units are related to the cpu frequency in
+oneshot mode and to the 8254 frequency (1193180 Hz) in periodic mode.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+The given time in nanoseconds/internal count units is returned.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_get_time"></A>
+<A NAME="rt_get_time_ns"></A>
+<A NAME="rt_get_cpu_time_ns"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_get_time, rt_get_time_ns, rt_get_cpu_time_ns - get the current time
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RTIME rt_get_time (void);</B>
+<p>
+<B>RTIME rt_get_time_ns (void);</B>
+<p>
+<B>RTIME rt_get_cpu_time_ns (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_get_time</b> returns the number of real time clock ticks since RT_TIMER
+bootup (<i>whatever this means</i>).
+This number is multiple of the 8254 period in periodic mode, while
+is multiple of cpu clock period in oneshot mode.
+<p>
+<b>rt_get_time_ns</b> is the same as <b>rt_get_time</b> but the returned time
+is converted to nanoseconds.
+<p>
+<b>rt_get_cpu_time_ns</b> ???
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+The current time in internal count units/nanoseconds is returned.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="next_period"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+next_period - get the time of next run
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RTIME next_period (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>next_period</b> returns the time when the caller task will run next.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+Next period time in internal count units.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_busy_sleep"></A>
+<A NAME="rt_sleep"></A>
+<A NAME="rt_sleep_until"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_busy_sleep, rt_sleep, rt_sleep_until - delay/suspend execution for a while
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_busy_sleep (int </B><I>nanosecs</I><B>);</B>
+<p>
+<B>void rt_sleep (RTIME </B><I>delay</I><B>);</B>
+<p>
+<B>void rt_sleep_until (RTIME </B><I>time</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_busy_sleep</b> delays the execution of the caller task
+without giving back the control to the scheduler.
+This function burns away CPU cycles in a busy wait loop
+It may be used for very short synchronization delays only.
+<br>
+<I>nanosecs</I> is the number of nanoseconds to wait.
+<p>
+<b>rt_sleep</b> suspends execution of the caller task for a
+time of <I>delay</I> internal count units. During this time the
+CPU is used by other tasks.
+<p>
+<b>rt_sleep_until</b> is similar to <b>rt_sleep</b> but the
+parameter <I>time</I> is the absolute time till the task have to
+be suspended. If the given time is already passed this call has no effect.
+<p>
+Note: a higher priority task or interrupt handler can run during wait
+so the actual time spent in these functions may be longer
+than the specified.
+</dd></dl>
+
+<dl><dt>
+<H3>NOTE</H3>
+</dt><dd>
+A higher priority task or interrupt handler can run during wait
+so the actual time spent in these functions may be longer
+than the specified.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#timing">[return to index]</A></p>
+
+</BODY>
+</HTML>

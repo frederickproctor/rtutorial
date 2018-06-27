@@ -1,0 +1,367 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - RPC</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rt_rpc"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_rpc - make a remote procedure call
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK *rt_rpc (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>,
+	unsigned int *</B><I>reply</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_rpc</b> makes a Remote Procedure Call.
+RPC is like a send/receive pair.
+<b>rt_rpc</b> sends the message <I>msg</I>
+to the task <I>task</I> then waits until a reply is received.
+The caller task is always blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+<br>
+The receiver task may get the message with any <b>rt_receive_*</b> function.
+It can send the answer with <b>rt_return</b>.
+<br>
+<i>reply</i> points to a buffer provided by the caller.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If message has not been sent (e.g. the
+task <I>task</I> was killed before receiving the message) 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+        The receiver task was killed before receiving the message.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> differs from
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<dl><dt>
+<H3>SEE ALSO</H3>
+</dt><dd>
+<a href="message.html#rt_receive">rt_receive_*</a>,
+<a href="#rt_return">rt_return</a>,
+<a href="#rt_isrpc">rt_isrpc</a>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#rpc">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_rpc_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_rpc_if - make a remote procedure call if receiver is ready
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK *rt_rpc_if (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>,
+	unsigned int *</B><I>reply</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_rpc_if</b> tries to make a Remote Procedure Call.
+If the receiver task is ready to accept a message <b>rt_rpc_if</b>
+sends the message <I>msg</I> then waits until a reply is received.
+In this case the caller task is blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+If the receiver is not ready <b>rt_rpc_if</b> returns immediately.
+<br>
+The receiver task may get the message with any <b>rt_receive_*</b> function.
+It can send the answer with <b>rt_return</b>.
+<br>
+<i>reply</i> points to a buffer provided by the caller.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If message has not been sent, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0</code>
+	</dt><dd>
+	The task <i>task</i> was not ready to receive the message or
+	it was killed before sending the reply.
+	</dd></dl>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> differs from
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<dl><dt>
+<H3>SEE ALSO</H3>
+</dt><dd>
+<a href="message.html#rt_receive">rt_receive_*</a>,
+<a href="#rt_return">rt_return</a>,
+<a href="#rt_isrpc">rt_isrpc</a>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#rpc">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_rpc_until"></A>
+<A NAME="rt_rpc_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_rpc_until, rt_rpc_timed - make a remote procedure call with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK *rt_rpc_until (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>,
+	unsigned int *</B><I>reply</I><B>,
+	RTIME </b><i>time</i><b>);</B>
+<p>
+<B>RT_TASK *rt_rpc_timed (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>msg</I><B>,
+	unsigned int *</B><I>reply</I><B>,
+	RTIME </b><i>delay</i><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_rpc_until</b> and <b>rt_rpc_timed</b> make a Remote Procedure Call.
+They send the message <I>msg</I> to the task <I>task</I> then wait
+until a reply is received or a timeout occurs.
+The caller task is always blocked and queued up.
+(Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option MSG_PRIORD.)
+<br>
+The receiver task may get the message with any <b>rt_receive_*</b> function.
+It can send the answer with <b>rt_return</b>.
+<br>
+<i>reply</i> points to a buffer provided by the caller.
+<br>
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that received the message)
+is returned.
+If message has not been sent or no answer arrived, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        <code>0</code>
+        </dt><dd>
+        The message could not be sent or the answer did not arrived in time.
+        </dd></dl>
+        <dl><dt>
+        <code>0xffff</code>
+        </dt><dd>
+        <I>task</I> does not refer to a valid task.
+        </dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> differs from
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<dl><dt>
+<H3>SEE ALSO</H3>
+</dt><dd>
+<a href="message.html#rt_receive">rt_receive_*</a>,
+<a href="#rt_return">rt_return</a>,
+<a href="#rt_isrpc">rt_isrpc</a>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#rpc">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_isrpc"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_isrpc - check if sender waits for reply or not
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<b>int rt_isrpc (RT_TASK *</B><I>task</I><B>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+After receiving a message, by calling <b>rt_isrpc</b> a task can figure out
+whether the sender task <i>task</i> is waiting for a reply or not.<br>
+No answer is required if the message sent by a <b>rt_send_*</b>
+function or the sender called <b>rt_rpc_timed</b> or <b>rt_rpc_until</b>
+but it is already timed out.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+If the <i>task</i> waits for a reply, a nonzero value is returned.
+Otherwise 0 is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+<b>rt_isrpc</b> does not perform any check on pointer <i>task</i>.
+<br>
+<b>rt_isrpc</b> cannot figure out what RPC result the sender is waiting for.
+</dd></dl>
+
+<dl><dt>
+<H3>COMMENTS</H3>
+</dt><dd>
+<b>rt_return</b> is intelligent enough to not send an answer to
+a task which is not waiting for it. Therefore using <b>rt_isrpc</b> is not
+necessary and discouraged.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#rpc">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_return - send back the result of a remote procedure call
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK *rt_return (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>result</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_result</b> sends the result <I>result</I> to the task <I>task</I>.
+If the task calling <b>rt_rpc*</b> previously is not waiting
+the answer (i.e. killed or timed out) this return message is silently
+discarded.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, <i>task</i> (the pointer to the task that is got the the reply)
+is returned.
+If the reply message has not been sent, 0 is returned.
+On other failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0</code>
+	</dt><dd>
+	The reply message was not delivered.
+	</dd></dl>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+There is no guarantee, that the value of pointer <i>task</i> differs from
+<code>0xffff</code>. In this theoretical case the caller cannot figure
+out if the operation was succesful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#rpc">[return to index]</A></p>
+
+</BODY>
+</HTML>

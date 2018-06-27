@@ -1,0 +1,39 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT tasks with no semaphore...
+sudo rmmod sem_task 2> /dev/null
+sudo insmod sem_task,ko DO_SEM=0 || exit 1
+
+echo waiting 5 seconds...
+sleep 5
+
+echo loading RT tasks with a semaphore...
+sudo rmmod sem_task 2> /dev/null
+sudo insmod sem_task,ko DO_SEM=1 || exit 1
+
+echo waiting 5 seconds...
+sleep 5
+
+echo removing RT task...
+sudo rmmod sem_task
+
+\rm -f dmesg.txt
+dmesg > dmesg.txt
+if test $? -ne 0 ; then
+    echo can\'t run the \'dmesg\' program-- try dmesg manually to view log output
+#'
+    exit 1
+fi
+
+# check if we're running X
+xrdb -query > /dev/null 2> /dev/null
+if test $? -eq 0 ; then
+    xterm -sb -sl 1000 -hold -e '(cat dmesg.txt && echo See the log file output above for results and kill this window when done)'
+else
+    cat dmesg.txt && echo See the log file output above for results
+fi
+
+exit 0

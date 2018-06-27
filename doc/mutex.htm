@@ -1,0 +1,203 @@
+<html>
+<head>
+<title>DATA CONSISTENCY TECHNIQUES</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex06_shm.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex07_sem.htm">[next]</a>
+
+<h1>Data Consistency Techniques</h1>
+Any shared data structures that are not operated on as one piece by the CPU
+need to be protected by data consistency techniques. Here are the safe
+data types, from the Intel IA-32 manual <a href="./references.htm#INT3">[INT3]</a>:
+<ul>
+<p>&#34;The Pentium 4, Intel Xeon, P6
+family, Pentium, and Intel486 processors guarantee that the following
+basic memory operations will always be carried out atomically: reading 
+or writing a byte, reading or writing a word aligned on a 16-bit
+boundary, and reading or writing a doubleword aligned on a 32-bit
+boundary.
+<p>&#34;The Pentium 4, Intel Xeon, and P6 family, and Pentium
+processors guarantee that the following additional memory operations
+will always be carried out atomically: reading or writing a quadword
+aligned on a 64-bit boundary.&#34;
+</ul>
+So, if you're writing types char, int, and long int on anything from
+a 486 to a Pentium, you're OK. On Pentiums (not 486s), long long ints
+are OK also (e.g., the RTIME time count type in RTAI).
+<p>Numerous methods exists for ensuring data consistency. To motivate the
+discussion, consider this simple (and wrong) algorithm for allocating
+a token that signifies permission to modify shared data:
+<pre>
+int token = 0;
+
+A: if (token == 0) { /* no one has it */
+B:   token = 1; /* now I have it */
+     /* modify shared data here */
+     token = 0; /* now I give it up */
+   } else {
+     /* I didn't get it; I'll try again */
+   }
+</pre>
+Why is this wrong?
+<p>Suppose token is 0 (unclaimed), and Process 1
+(P1) executes line A and gets to line B. At this point, P1 can be
+swapped out, and P2 can run.
+Now, P2 executes its line A, sees that
+token is still 0, and gets to its line B. At this point, P1 and P2
+will set token to 1, but it's too late: both think they have the
+token. This technique will not work.
+<p>Brief explanations of some techniques that do work are given below. See <a
+href="./references.htm#TAN">[TAN]</a> or <a
+href="./references.htm#DEI">[DEI]</a>
+for a textbook treatment.
+
+<h2>Two-Process Mutual Exclusion: Dekker's- and Peterson's Algorithms</h2>
+<ul>
+<li>These algorithms implement two-process mutual exclusion by setting and
+polling three shared
+boolean flags, a technique known as a "spinlock". No special hardware
+instructions are required.
+<li>Dekker's algorithm
+(c. 1965) is widely known and 
+mentioned here for completeness; 
+Peterson's algorithm (c. 1981) is a simpler and more efficient
+improvement. 
+<li>Here is Peterson's Algorithm for two processes, p0 and
+p1:
+<pre>
+int favored_process = 0;
+int p0_wants_to_enter = 0;
+int p1_wants_to_enter = 0;
+
+/* how p0 gets the resource */
+p0_wants_to_enter = 1;
+favored_process = 1;
+while (p1_wants_to_enter && favored_process == 1) /* spinlock */ ;
+/* operate on shared resource here */
+p0_wants_to_enter = 0; /* give up the resource */
+
+/* how p1 gets the resource */
+p1_wants_to_enter = 1;
+favored_process = 0;
+while (p0_wants_to_enter && favored_process == 0) /* spinlock */ ;
+/* operate on shared resource here */
+p1_wants_to_enter = 0; /* give up the resource */
+</pre>
+
+<li>Peterson's and Dekker's Algorithms do not suffer from
+"indefinite postponement," a condition where one of the processes may
+wait arbitrarily long to acquire the resource if the other repeatedly
+takes and gives it.
+<li>
+The drawback of these algorithms is their applicability to two-process
+mutual exclusion only. Algorithms exist for N-process mutual exclusion
+and no indefinite postponement; see <a
+href="./references.htm#DEI">[DEI]</a> for details.
+</ul>
+
+<h2>N-Process Mutual Exclusion using Hardware</h2>
+<ul>
+<li>The problem with the first (wrong) technique is that the test of
+the flag for
+0 and the setting of the flag to 1 can be split. If it were
+indivisible ("atomic"), that technique would work.
+<li>You can make any sequence of instructions atomic by disabling
+the tasking interrupt before the sequence, and enabling it again
+after. This is generally regarded as bad practice, since it is
+less efficient than other hardware techniques, such as "test and set".
+<li>Test and set is implemented on the Intel IA-32 architecture (e.g.,
+the Pentium) as the XCHG (exchange) instruction <a href="./references.htm#INT2B">[INT2B]</a>, i.e., corresponding
+to the hypothetical C language interface
+<pre>
+value = 1;
+xchg(&flag, &value);
+</pre>
+After the 'xchg()' call, 'value' is what 'flag' was, and 'flag' is 1.
+If 'value' becomes 0, this means that 'flag' was 0, the caller now has
+the resource, and the flag is set to 1 to block others. If 'value'
+remains 1, this means that 'flag' was 1, and the caller does not have
+the resource (setting a 1 flag to 1 does no harm). 
+<li>Both disabling interrupts and hardware test-and-set suffer from
+potential indefinite postponement, since no record of waiting
+processes is maintained. 
+</ul>
+
+<h2>N-Reader, 1-Writer Mutual Exclusion using Head/Tail Flags</h2>
+<ul>
+<li>Head/tail flags are a pair of flags, typically a byte each,
+that surround a data structure, e.g.,
+<pre>
+struct mystruct {
+  char head;
+  int data[1000];
+  char tail;
+};
+</pre>
+<li>This technique only works if the writer can't be interrupted by
+the readers, or vice-versa.
+In RT Linux, this is true if the writer is an RT task and
+the readers are Linux processes, vice-versa, or if both are RT
+tasks. It won't work if they're all Linux processes.
+<li>The writer increments the head, writes some or all of the data, then
+sets the tail equal to the head. This can be done directly in the
+shared memory, or in a local copy that is written out fully when
+finished ("buffering"), depending upon which would occupy the shared
+memory for the least time.
+<li>The reader compares the
+head and tail. If equal, the data in between is consistent. If not,
+the data is being acted upon and may be inconsistent.
+<li>If the reader can be interrupted by the writer, the shared memory
+should first be copied to a local data structure. Comparing the head
+and tail directly from shared memory 
+at one instant does not
+guarantee that subsequent direct reading of the shared data will be
+uninterrupted.
+<li>While head/tail flags do not provide mutual exclusion, they do
+allow the detection of inconsistent data.
+<li>This technique can lead to <i>indefinite postponement</i> of the
+reader if the write frequency is high.
+In this case, the reader never gets a consistent
+read. The reader can detect this condition, however.
+<li>Because there is no blocking, this technique can be applied
+between Linux processes and RT tasks. We show this in the example.
+</ul>
+
+<h2>Other Techniques</h2>
+There are numerous other techniques for data consistency and mutual
+exclusion.
+<ul>
+<li><i>Semaphores</i> are data structures that support give/take
+semantics similar to test-and-set (in fact semaphores are often
+implemented using test-and-set). They support N-process mutual
+exclusion, and can be used to implement multi-reader, multi-writer
+systems. Semaphores can be binary or counting, the latter with a
+cumulative 'give' count, allowing as many subsequent takes before
+blocking. Semaphores between real-time processes are discussed in <a
+href="./ex07_sem.htm">Example 7, RTL Semaphores</a>.
+<li><i>Mutexes</i> are like binary semaphores, but add the concept of
+ownership; that is, only the process who took the mutex can give
+it back.
+<li><i>Monitors</i> and <i>Condition Variables</i> are generalized
+mutexes that allow the taking of a mutex, checking of condition, and
+atomic release-and-wait until the condition is satisfied.
+<li><i>Reader/Writer Locks</i> block any writer from changing a
+resource if one or more readers are looking at it, and blocks all
+readers from looking at a resource if a writer is changing it.
+<li>There is a rich literature on mutual exclusion. See 
+<a 
+href="./references.htm#TAN">[TAN]</a>, <a
+href="./references.htm#DEI">[DEI]</a>, <a
+href="./references.htm#LAM1">[LAM1]</a>, and <a
+href="./references.htm#LAM2">[LAM2]</a> for more information.
+</ul>
+
+<hr>
+<a href="./ex07_sem.htm">Next: Example 7, RTL Semaphores</a>
+<p><a href="./ex06_shm.htm">Back: Example 6, Shared Memory</a>
+
+</body>
+</html>

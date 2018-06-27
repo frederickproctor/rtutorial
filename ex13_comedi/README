@@ -1,0 +1,46 @@
+Comedi provides kernel module device drivers for a variety of I/O
+boards. Comedilib is the convenient Linux application programming
+interface to the device drivers. KComedilib gives the same convenient
+programming interface to RTAI kernel modules. KComedilib is provided
+as part of Comedi.
+
+To install Comedi, get the latest CVS snapshot anonymously:
+
+cd /usr/local
+cvs -d :pserver:anonymous@cvs.comedi.org:/cvs/comedi co comedi
+cd comedi
+./autogen.sh
+./configure && make && sudo make install
+sudo depmod -a
+
+Now you'll have the base comedi kernel module 'comedi.ko', all the
+Comedi device drivers, and the kcomedilib kernel module
+'kcomedilib.ko' in the usual place, /lib/modules/XXX/comedi.
+
+You'll want to get KComedi to get the configuration and debugging
+utilities. Get it via CVS similarly: 
+
+cd /usr/local
+cvs -d :pserver:anonymous@cvs.comedi.org:/cvs/comedi co comedilib
+cd comedilib
+./autogen.sh
+./configure && make && sudo make install
+
+The 'comedi_config' utility you'll need for setting up the parameters
+for the device drivers you'll use is installed in the /usr/local/sbin/
+directory. Add this to your path.
+
+No modules are built in Comedilib, so no need to run 'depmod'. 
+
+There is a board information utility 'board_info' in the
+comedilib/demo directory. Build that: 
+
+cd comedilib/demo
+make
+
+There is no install for this, so copy this to a well-known place,
+probably the /usr/local/sbin/ directory where 'comedi_config' is
+located:
+
+sudo cp board_info /usr/local/sbin
+

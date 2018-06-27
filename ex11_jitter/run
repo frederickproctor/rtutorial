@@ -1,0 +1,29 @@
+#!/bin/sh
+
+tmpfile=/tmp/jitter.dat
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT task...
+sudo rmmod jitter_mod 2> /dev/null
+sudo insmod jitter_mod.ko || exit 1
+
+echo running jitter analysis...
+rm -f $tmpfile
+./jitter_app > $tmpfile
+
+echo removing RT task...
+sudo rmmod jitter_mod
+
+gnuplot=`which gnuplot 2> /dev/null`
+if test x$gnuplot = x ; then
+    echo no gnuplot program available, so look at $tmpfile manually
+else
+    echo plotting jitter data...
+    echo plot \'$tmpfile\' | $gnuplot -persist
+fi
+
+echo done
+
+exit 0

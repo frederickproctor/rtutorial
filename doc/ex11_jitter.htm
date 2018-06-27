@@ -1,0 +1,75 @@
+<html>
+<head>
+<title>EXAMPLE 11: MEASURING TIMING JITTER</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex10_stack.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex12_math.htm">[next]</a>
+
+<h1>Example 11: Measuring Timing Jitter</h1>
+<p>
+Real-time code should execute with more deterministic timing than
+normal Linux process code. How much more deterministic is it? This
+example measures the variation in the actual timing of a pure periodic
+task, using the Pentium's built-in Time Stamp Counter (TSC), and shows
+a plot something like this:
+<p>
+<img src="./jitter.png">
+<p>
+Refer to the <a
+href="../ex11_jitter/jitter_task.c">commented real-time
+source code</a> and the <a
+href="../ex11_jitter/jitter_app.c">commented application
+source code</a> for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>A pure periodic real-time task reads the TSC at the beginning of
+each 50-microsecond cycle. The TSC is available via the Intel
+instruction RDTSC <a 
+href="./references.htm#INT3B">[INT2B].</a> See <a
+href="../ex11_jitter/tsc.c">tsc.c</a> for the code used here.</a>
+<li>The TSC is a 64-bit unsigned number that increments each clock
+cycle. On a 1 GHz processor, this gives 1 nanosecond resolution. The
+TSC will roll over after 2<sup>64</sup> cycles, which for the same 1
+GHz processor is over 584 years.
+<li>The TSC is logged into a shared memory array with 1K entries.
+<li>A Linux process waits for the array to fill up, and computes the
+difference between successive entries. This should nominally be 50
+microseconds, but variation in the execution time due to the cache,
+branching in the scheduling algorith, etc. will introduce some
+variation ("jitter"). 
+<li>The differences are plotted to show the magnitude, which are
+typically on the order of about 10 microseconds.
+<li>More detail on jitter analysis is available in <a
+href="./references.htm#PRO">[PRO],</a> including a software technique
+that reduces jitter to below a tenth of a microsecond.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex11_jitter' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Jitter Testing" button.
+<p>You'll see a plot window showing the magnitude of the jitter.
+
+<p><a href="../ex11_jitter/jitter_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex11_jitter/jitter_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ex12_math.htm">Next: Example 12, Floating Point in Real
+Time Tasks</a> 
+<p><a href="./ex10_stack.htm">Back: Example 10, Determining Stack Size</a>
+
+</body>
+</html>

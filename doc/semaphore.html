@@ -1,0 +1,393 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Semaphore</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 4.6">
+</HEAD>
+<BODY>
+
+<A NAME="rt_sem_init"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_init - initialize a semaphore
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_sem_init (SEM* </B><I>sem</I><b>, int </b><I>value</I><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_init</b> initializes a semaphore <I>sem</I>.
+A semaphore can be used for communication and synchronization among
+real-time tasks.
+<p>
+<i>sem</i> must point to a statically allocated structure.
+<i>value</i> is the initial value of the semaphore (usually 1).
+<p>
+Positive value of the semaphore variable shows how many tasks
+can do a 'P' operation without blocking. (Say how many tasks
+can enter the critical region.)
+Negative value of a semaphore shows that how
+many task is blocked on it. (Unless it is initialized to negative in advance
+but this would be totally senseless).
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+None
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+None
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+Negative initial values should not be allowed.
+</dd></dl>
+
+<dl><dt>
+<H3>NOTE</H3>
+</dt><dd>
+Just for curiosity: the explanation of "P" and "V":
+<blockquote>
+	The name of <i>P operation</i> comes the Dutch "prolagen", a
+	combination of "proberen" (to try) and "verlagen" (to reduce);
+	Also from the word "passeren" (to pass).
+<p>
+	The name of <i>V operation</i> coimes from the Dutch "verhogen"
+	(to increase) or "vrygeven" (to release).
+</blockquote>
+	(Source: Daniel Tabak - Multiprocessors, Prentice Hall, 1990.)
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_sem_delete"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_delete - delete a semaphore
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_sem_delete (SEM* </B><I>sem</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_delete</b> deletes a semaphore previously created with
+<b>rt_sem_create</b>.
+<p>
+<I>sem</I> points to the structure used in the corresponding call to
+<b>rt_sem_create</b>.
+<p>
+Any tasks blocked on this semaphore is allowed to run when semaphore is
+destroyed.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, 0 is returned. On failure, a nonzero value is returned, as
+described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>sem</I> does not refer to a valid semaphore.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+-EINVAL would be more a consistent error code.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_sem_signal"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_signal - signalling a semaphore
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_sem_signal (SEM* </B><I>sem</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_signal</b> is the semaphore post (sometimes known as
+'give', 'signal', or 'V') operation. It is tipically called when the task
+leaves a critical region. The semaphore value is incremented
+and tested.
+If the value is not positive,
+the first task in semaphore's waiting queue is allowed to run.
+<b>rt_sem_signal</b> does not block the caller task.
+<p>
+<i>sem</i> points to the structure used in the call to rt_sem_create.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, 0 is returned. On failure, a nonzero value is returned as
+described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>sem</I> does not refer to a valid semaphore.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+-EINVAL would be more a consistent error code.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_sem_wait"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_wait - wait a semaphore
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_sem_wait (SEM* </B><I>sem</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_wait</b> is the semaphore wait (sometimes known as
+'take' or 'P') operation. It is tipically called when a task enters a
+critical region.
+The semaphore value is decremented and tested.
+If it is still non-negative <b>rt_sem_wait</b> returns immediately.
+Otherwise the caller task is blocked and queued up.
+Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option SEM_PRIORD.
+In this case <b>rt_sem_wait</b> returns if
+<ul>
+<li> The caller task is in the first place of the waiting queue and
+	an other task issues a <b>rt_sem_signal</b> call;
+<li> An error occurs (e.g. the semaphore is destroyed);
+</ul>
+<p>
+<i>sem</i> points to the structure used in the call
+to <b>rt_sem_create</b>.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success an undetermined  number is returned.
+(Actually the return value somehow depends on the semaphore value.)<br>
+On failure, a special value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>sem</I> does not refer to a valid semaphore.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+The normal return value should not depend on the current value of the semaphore.
+In the current implementation number <code>0xffff</code>
+can be returned under normal
+circumstances too and it is undistinguishable from the error code.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_sem_wait_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_wait_if - take a semaphore if possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_sem_wait_if (SEM* </B><I>sem</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_wait_if</b> is a version of the semaphore wait (sometimes known as
+'take' or 'P') operation. It is  similar to
+<a href="#rt_sem_wait"><B>rt_sem_wait</b></a> but
+it is never blocks the caller. If the semaphore is not free,
+<B>rt_sem_wait_if</b> returns immediately and the semaphore value
+remains unchanged.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, 0 is returned.
+On failure a special value is returned as described below.
+Otherwise a positive value is returned.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>sem</I> does not refer to a valid semaphore.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+The normal return value should not depend on the current value of the semaphore.
+In the current implementation number <code>0xffff</code>
+can be returned under normal
+circumstances too and it is undistinguishable from the error code.
+Moreover the caller cannot figure out, whether if taking the semaphore
+was successful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_sem_wait_until"></A>
+<A NAME="rt_sem_wait_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_sem_wait_until, rt_sem_wait_timed - wait a semaphore with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_sem_wait_until (SEM* </B><I>sem</I><B>, RTIME </B><I>time</I><B>);</B>
+<p>
+<B>int rt_sem_wait_timed (SEM* </B><I>sem</I><B>, RTIME </B><I>delay</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_sem_wait_until</b> and <b>rt_sem_wait_timed</b> are version of
+the semaphore wait (sometimes known as 'take' or 'P') operation.
+
+The semaphore value is decremented and tested.
+If it is still non-negative these functions return immediately.
+Otherwise the caller task is blocked and queued up.
+Queueing may happen in priority order or on FIFO base.
+This is determined by compile time option SEM_PRIORD.
+
+In this case these functions return if
+<ul>
+<li> The caller task is in the first place of the waiting queue and
+	an other task issues a <b>rt_sem_signal</b> call;
+<li> Timeout occurs;
+<li> An error occurs (e.g. the semaphore is destroyed);
+</ul>
+
+In case of timeout the semaphore value is incremented before return.
+<br>
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On failure a special value is returned as described below.
+Otherwise the return value is undetermined. (Actually it is somehow derived
+from the current value of the semaphore.)
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	<code>0xffff</code>
+	</dt><dd>
+	<I>sem</I> does not refer to a valid semaphore.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+The normal return value should not depend on the current value of the semaphore.
+In the current implementation number <code>0xffff</code>
+can be returned under normal
+circumstances too and it is undistinguishable from the error code.
+Moreover the caller cannot figure out, whether if taking the semaphore
+was successful or not.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#semaphore">[return to index]</A></p>
+
+</BODY>
+</HTML>

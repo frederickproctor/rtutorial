@@ -1,0 +1,18 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo loading RT task...
+sudo rmmod stack_task 2> /dev/null
+sudo insmod stack_task.ko || exit 1
+
+echo waiting 1 second...
+sleep 1
+
+echo removing RT task...
+sudo rmmod stack_task
+
+xterm -sb -sl 1000 -hold -e '(dmesg && echo See the log file output above for results)'
+
+exit 0

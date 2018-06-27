@@ -1,0 +1,542 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Mailbox</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rt_mbx_init"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_init - initialize mailbox
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_init
+	(MBX*</B> <I>mbx</I><b>, int </b><i>size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_init</b> initializes a mailbox of size <i>size</i>. <i>mbx</i>
+have to point to a statically  allocated  structure.
+<p>
+Using mailboxes is a flexible method of task-to-task communication.
+Tasks are allowed to send arbitrary size messages by using any mailbox
+buffer size.
+Clearly you should use a buffer sized at least as the largest message you
+envisage. However if you
+expect a message larger than the average message size very rarely you can use
+a smaller buffer without much loss of efficiency. In such a way you can set up
+your own mailbox usage protocol, e.g. using fix size messages with a buffer
+that is an integer multiple of such a size guarantees that each message is
+sent/received atomically to/from the mailbox. Multiple senders and receivers
+are allowed and each will get the service it requires in turn, according to its
+priority.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	Space could not be allocated for the mailbox buffer.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_delete"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_delete - delete mailbox
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_delete
+	(MBX*</B> <I>mbx</I><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_delete</b> removes a mailbox previously created
+with <b>rt_mbox_init</b>. <i>mbx</i> points to the structure used in the
+corresponding call to <b>rt_mbox_init</b>.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned. On failure a negative value
+       is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd><dt>
+	-EFAULT
+	</dt><dd>
+	
+??? <i>Paolo, fill this line please.</i>
+	
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_send"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_send - send message unconditionally
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_send
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_send</b> sends a message <I>msg</I> of <I>msg_size</I> bytes
+to the mailbox <I>mbx</I>. The caller will be blocked until
+the whole message is enqueued or an error occurs.</font>
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of unsent bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_send_wp"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_send_wp - send bytes as many as possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_send_wp
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+
+<b>rt_mbx_send_wp</b> sends as many as possible of bytes of message
+<i>msg</i> to mailbox <i>mbx</i>
+then returns immediately. The message length is <i>msg_size</i>.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of unsent bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_send_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_send_if - send a message if possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_send_if
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+
+<B>rt_mbx_send_if</b> tries to enqueue a message <i>msg</i> of
+<i>msg_size</i> bytes to the mailbox <i>mbx</i>.
+It returns immediately, the caller is never blocked.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of unsent bytes (0 or <i>msg_size</i>)
+is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+
+<A NAME="rt_mbx_send_until"></A>
+<A NAME="rt_mbx_send_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_send_until, rt_mbx_send_timed - send a message with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_send_until
+	(MBX* </B><I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>,
+	RTIME </b><i>time</i><b>);</b>
+<p>
+<B>int rt_mbx_send_timed
+	(MBX* </B><I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>,
+	RTIME </b><i>delay</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_send_until</b> and <b>rt_mbx_send_timed</b>
+send a message <I>msg</I> of <I>msg_size</I> bytes
+to the mailbox <I>mbx</I>. The caller will be blocked until
+all bytes of message is enqueued, timeout expires or an error occurs.
+<br>
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of unsent bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+
+<A NAME="rt_mbx_receive"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_receive - receive message unconditionally
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_receive
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_receive</b> receives a message of <I>msg_size</I> bytes
+from the mailbox <I>mbx</I>. The caller will be blocked until
+all bytes of the message arrive or an error occurs.</font>
+<br>
+<i>msg</i> points to a buffer provided by the caller.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of received bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_receive_wp"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_receive_wp - receive bytes as many as possible
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_receive_wp
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+
+<b>rt_mbx_receive_wp</b>
+receives at most <i>msg_size</i> of bytes of message from mailbox <i>mbx</i>
+then returns immediately.
+
+<br><i>msg</i> points to a buffer provided by the caller.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of received bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mbx_receive_if"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_receive_if - receive a message if available
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_receive_if
+	(MBX*</B> <I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+
+<b>rt_mbx_receive_if</b>
+receives a message from the mailbox <i>mbx</i> if the whole message
+of <i>msg_size</i> bytes is available immediately.
+
+<br><i>msg</i> points to a buffer provided by the caller.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of received bytes (0 or <i>msg_size</i>)
+is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+
+<A NAME="rt_mbx_receive_until"></A>
+<A NAME="rt_mbx_receive_timed"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mbx_receive_until, rt_mbx_receive_timed -
+	receive a message with timeout
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_mbx_receive_until
+	(MBX* </B><I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>,
+	RTIME </b><i>time</i><b>);</b>
+<p>
+<B>int rt_mbx_receive_timed
+	(MBX* </B><I>mbx</I><b>,
+	void* </b><I>msg</I><b>,
+	int </b><i>msg_size</i><b>,
+	RTIME </b><i>delay</i><b>);</b>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mbx_receive_until</b> and <b>rt_mbx_receive_timed</b>
+receive a message of <I>msg_size</I> bytes
+from the mailbox <I>mbx</I>. The caller will be blocked until
+all bytes of the message arrive, timeout expires or an error occurs.
+<br>
+<i>time</i> is an absolute value.
+<i>delay</i> is relative to the current time.
+<br>
+<i>msg</i> points to a buffer provided by the caller.
+
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success, the number of received bytes is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<i>mbx</i> points to not a valid mailbox.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#mbox">[return to index]</A></p>
+
+</BODY>
+</HTML>

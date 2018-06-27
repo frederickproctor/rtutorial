@@ -1,0 +1,108 @@
+<html>
+<head>
+<title>EXAMPLE 7: RTL SEMAPHORES</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex06_shm.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex08_rcservo.htm">[next]</a>
+
+<h1>Example 7: RTL Semaphores</h1>
+<p>
+This example demonstrates two-process mutual exclusion of real-time
+tasks using semaphores.
+<ul>
+<li><i>Semaphores</i> are data structures with a count and two associated
+operations, <i>give</i> and <i>take</i>.
+<li>A "give" operation increments the count and returns immediately.
+<li>A "take" operation decrements the count and returns immediately,
+unless the count is already zero. In this case the operation blocks
+until another process gives the semaphore.
+<li>A <i>binary semaphore</i> is a semaphore with a maximum count of
+1. Binary semaphores are useful to enforce mutual exclusion: only one
+process can have the semaphore at any one time. Other takers will
+block until the holder returns it. Shared data will remain consistent,
+since there is no possibility of being interrupted during access.
+<li>Various semantics determine which of the possibly many blocked
+processes attempting to take a semaphore will awaken first when it is
+given, for example first-in first-out (queued) or priority-based.
+<li>While binary semaphores would appear to be a
+natural choice to enforce mutual exclusion for shared memory, they are
+problematic here because they could cause the real-time task to become
+blocked based on non-real-time actions. Because of this, there is
+no support for semaphores between Linux processes and real-time tasks,
+only Linux-Linux or RT-RT. In this example we show RT-RT semaphores.
+</ul>
+<p>
+Refer to the <a
+href="../ex07_sem/sem_task.c">commented 
+source code</a> of the example for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>Two tasks are created that share a data array. One task is a
+low-priority slow task that writes the data array with a heartbeat,
+and the other is a high-priority fast tasks that reads it. This will
+tend to cause data inconsistency.
+<li>A semaphore is used to mediate access to the data array. The
+semaphore must first be initialized by calling 'sem_init()', e.g.,
+<pre>
+SEM sem; /* here's the semaphore data structure */
+rt_sem_init(&sem, 1); /* 1 means it's initially available */
+</pre>
+If the semaphore were initialized to 0, it would be initially
+"taken".
+<li>To take the semaphore, call 'rt_sem_wait()', e.g.,
+<pre>
+rt_sem_wait(&sem); /* blocked waiting... */
+/* we returned, and now have the semaphore */
+</pre>
+This will return immediately if you have the semaphore, or block and
+return when another task gives the semaphore.
+<li>To give the semaphore, call 'rt_sem_signal()', e.g.,
+<pre>
+rt_sem_signal(&sem); /* will always return immediately */
+/* someone blocked on 'sem' may have just run */
+</pre>
+<li>The reader checks the data after it successfully gets the
+semaphore. If the data array is not all set to the same value, a bad
+data count is incremented.
+<li>The example runs twice, once with semaphores disabled and then
+with semaphores enabled. Statistics are printed showing the number of
+reads, writes and bad data. Without semaphores, you should see lots of
+bad data. With semaphores, you should see none.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex07_sem' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Semaphores" button.
+<p>You'll see a window pop up with a log of diagnostics messages
+printing out. Look for the the results of the test, with and without
+semaphores, e.g.,
+<pre>
+Sep  1 11:53:41 letti kernel: no sem: read/write/bad counts = 50753/538/47218
+Sep  1 11:53:46 letti kernel: with sem: read/write/bad counts = 50665/537/0
+</pre>
+The 'bad counts' signify times where the shared data was detected to
+be inconsistent. This should be 0 with the semaphore, and is likely to
+be nonzero without the semaphore.
+
+<p><a href="../ex07_sem/sem_task.c">See the Code</a>
+
+<hr>
+<a href="./ex08_rcservo.htm">Next: Example 8, RC Airplane Servomotor Control</a>
+<p><a href="./ex06_shm.htm">Back: Example 6, Shared Memory Communication</a>
+
+</body>
+</html>

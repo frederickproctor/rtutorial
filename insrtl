@@ -1,0 +1,14 @@
+#!/bin/sh
+
+# read in RTAI_DIR
+. `dirname $0`/rtaidir
+
+if [ -d $RTAI_DIR/modules ] ; then
+    cd $RTAI_DIR/modules
+    for module in rtai_hal rtai_sched rtai_math rtai_fifos rtai_sem ; do
+	sudo insmod $module.ko
+    done
+    exit 0
+fi
+
+exit 1

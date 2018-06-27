@@ -1,0 +1,94 @@
+Copyright (c) 2000 Lineo Inc, Release under the GPL
+-------------------------------------------------
+
+How to build and run your Fantazien display from real-time Linux
+================================================================
+
+By: Stuart Hughes, stuarth@lineo.com, Sept 19th 2000
+
+Revision: Phil Wilshire philw@lineo.com , Oct 12, 2000
+          - moved sensor to pin 13.
+
+Revision: Alan Hilton alanh@lineo.com , 31 Jan 2001
+	  - lxrt section included.
+
+What you will need
+------------------
+
+o A standard parallel printer cable (I used the $14 radioshack cable).
+
+o A good quality (temperature controlled soldering iron)
+
+o A continuity tester (e.g a digital multi-meter)
+
+
+Hacking the hardware
+----------------------
+
+o Disconnect the unit from the mains, and remove any batteries.
+
+o Make a mark on the back of the case on the left hand side, half an 
+  inch from the bottom and side of the case (you will drill into this
+  later).
+
+o Open your unit by undoing the 2 screws under the base (one is obscured
+  by the sticker).
+
+o With care pull the unit apart.
+
+o Very carefully remove the large 40 pin dual-in-line chip that controls the
+  unit.  Remember the chip orientation for when you replace it.
+
+o Lift pins 1 to 8 of the 40 pin chip.  Pin 1 is on the bottom left near the
+  end that has the notch looking at it from the top.
+
+o Replace the chip in its socket.
+
+o Cut the centronics connector off the end of the printer cable
+
+o Drill a hole in the case where you marked it earlier, just large 
+  enough for the cable to pass through
+
+o Pass the cable through from the outside to the inside of the case.
+
+o Strip back the outer cable shielding to expose 6 inches of the cable strands.
+
+o Strip back each strand by 1/8th of an inch.
+
+o Buzz out the connections from the 25 way D connector pins to the
+  conductor stands.  The cable I used had the following colour coding,
+  your milage may vary.  Here's what I found for my cable:
+
+  D pin	  colour		Chip connection
+  ---     ------		---------------
+  2	  yellow			1
+  3	  blue			2
+  4	  orange+white		3
+  5	  black			4
+  6	  black+white		5
+  7       grey			6
+  8	  white			7
+  9	  yellow+black		8
+
+  10	  blue+white		13
+ 
+  19	  red+white			ground (negative) large battery pad
+  20	  green+white		ground (negative) large battery pad
+
+
+o Following the guide above, carefully solder led connections to the 
+  non-component side of the 40 pin chip socket.  Make sure not to
+  short out any pads or adjacent connections
+
+o Solder (D connector pin 10) the sync wire to pin 13 on the 40 pin
+  chip on the same side as the other connections.
+
+o Connect the 2 ground wires to the negative large battery connection.
+  This location will be on the lower left hand side of the battery
+  connectors with the thin track going up towards the wand.
+
+
+o Re-assemble the unit, taking care not to trap any wires or obstruct
+  the free movement of the display spring.
+
+[Software instructions deleted, as they don't apply to this tutorial]

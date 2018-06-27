@@ -1,0 +1,22 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl 2> /dev/null || exit 1
+
+echo loading RT task...
+sudo rmmod isr_task 2> /dev/null
+sudo insmod isr_task.ko || exit 1
+
+echo short pin 10 to pin 25 and generate some interrupts...
+./isr_app &
+
+sleep 10
+
+kill -INT $!
+
+echo removing RT task...
+sudo rmmod isr_task
+
+echo done
+
+exit 0

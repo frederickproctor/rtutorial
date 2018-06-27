@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>EXAMPLE 9: DISPLAYING MESSAGES ON AN LED WAND CLOCK</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex08_rcservo.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex10_stack.htm">[next]</a>
+
+<h1>Example 9: Displaying Messages on an LED Wand Clock</h2>
+<p>
+This example demonstrates the application of tasking, FIFOs and
+interrupt service routines to the display of messages on a
+Fantazein&reg; LED wand clock. 
+<ul>
+<li>The stock clock has a built-in microcontroller that lets you set
+messages via a keypad.
+<li>A wand with 8 LEDs waves back and forth. As it waves, the LEDs
+change to display dots for the current vertical segment of the message
+character. Persistence of vision makes the message appear suspended in
+space.
+</ul>
+<table>
+<tr>
+<td><img src="./ledclock.jpg"></td>
+<td><img src="./ledwand.jpg"></td>
+<td>
+Information on the stock clock is at <a
+href="http://www.fantazein.com">www.fantazein.com</a>
+<p>You'll need to
+hack into it and do a bunch of rewiring to connect it to the parallel
+port.
+<p><a href="./ledclock.txt">Read these instructions</a> to hack the
+clock and void your warrantee.
+</td>
+</tr>
+</table>
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>Hardware hacks to the clock redirect the 8 LEDs from the built-in
+microcontroller to the output data bits of the parallel port.
+<li>A Hall effect sensor generates an interrupt when the wand passes
+into and out of one of the ends. This is also redirected to the
+parallel port.
+<li>The main task that writes the LEDs suspends itself immediately
+upon execution. It never runs periodically.
+<li>An interrupt service routine resumes the main task, with a flag
+that signifies which direction the wand is waving.
+<li>Depending on the wand direction, the main task outputs a bit
+pattern appropriate to the current vertical segment of the character
+to be displayed, and reschedules itself to run sometime later.
+<li>These segments are computed from a font definition file, stored in
+an array in the Linux task, and sent using a FIFO to the RT task.
+<li>No new RT Linux concepts are introduced here. We're putting
+together what we've learned in the previous examples. For the curious,
+the Linux application code shows how to get immediate keyboard input
+by setting the non-blocking option.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex09_ledclock' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "LED Clock" button.
+<p>Type in messages, which are then displayed banner-like on the wand
+clock. RETURN clears the messages, CTRL-C stops the demo.
+
+<p><a href="../ex09_ledclock/ledclock_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex09_ledclock/ledclock_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ex10_stack.htm">Next: Example 10, Determining Stack Size</a>
+<p><a href="./ex08_rcservo.htm">Back: Example 8, RC Airplane Servomotor Control</a>
+
+</body>
+</html>

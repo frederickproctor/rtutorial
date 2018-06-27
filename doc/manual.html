@@ -1,0 +1,407 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.1 documentation</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="index"></A>
+<H1><FONT COLOR="#CC0000">DIAPM-RTAI</FONT></H1>
+
+<H1>
+(<FONT COLOR="#CC0000">D</FONT>ipartimento di
+<FONT COLOR="#CC0000">I</FONT>ngegneria
+<FONT COLOR="#CC0000">A</FONT>erospaziale,
+<FONT COLOR="#CC0000">P</FONT>olitecnico di
+<FONT COLOR="#CC0000">M</FONT>ilano<br>
+<FONT COLOR="#CC0000">R</FONT>eal
+<FONT COLOR="#CC0000">T</FONT>ime
+<FONT COLOR="#CC0000">A</FONT>pplication
+<FONT COLOR="#CC0000">I</FONT>nterface)</H1>
+
+<H1>
+A Hard Real Time support for LINUX</H1>
+
+<H3>
+This document explains how to call the functions available in the RTAI
+developed at DIAPM.</H3>
+
+<ul>
+<LI> <A HREF="#task">Task functions</A></LI>
+<LI> <A HREF="#timing">Timing functions</A></LI>
+<LI> <A HREF="#semaphore">Semaphore functions</A></LI>
+<LI> <A HREF="#message">Message handling functions</A></LI>
+<LI> <A HREF="#rpc">RPC (Remote Procedure Call) functions</A></LI>
+<li> <a href="#mbox">Mailbox functions</a></li>
+<LI> <A HREF="#service">RTAI service functions</A></LI>
+<LI> <A HREF="#fifo">FIFO communication functions</A></LI>
+<LI> <A HREF="#fifoaux">Auxiliary functions</A></LI>
+</ul>
+
+<hr>
+
+<h4 align=center>Functions provided by rtai_sched module</h4>
+
+<P>Task functions:<A NAME="task"></A>
+<BLOCKQUOTE>
+    <A HREF="task.html#rt_task_init">rt_task_init</A>
+<BR><A HREF="task.html#rt_task_init_cpuid">rt_task_init_cpuid</A>
+<BR><A HREF="task.html#rt_task_delete">rt_task_delete</A>
+<BR><A HREF="task.html#rt_task_make_periodic">rt_task_make_periodic</A>
+<BR><A HREF="task.html#rt_task_make_periodic_relative_ns">rt_task_make_periodic_relative_ns</A>
+<BR><A HREF="task.html#rt_task_wait_period">rt_task_wait_period</A>
+<BR><A HREF="task.html#rt_task_yield">rt_task_yield</A>
+<BR><A HREF="task.html#rt_task_suspend">rt_task_suspend</A>
+<BR><A HREF="task.html#rt_task_resume">rt_task_resume</A>
+<br><A HREF="task.html#rt_busy_sleep">rt_busy_sleep</A>
+<br><A HREF="task.html#rt_sleep">rt_sleep</A>
+<br><A HREF="task.html#rt_sleep_until">rt_sleep_until</A>
+<BR><A HREF="task.html#rt_get_task_state">rt_get_task_state</A>
+<BR><A HREF="task.html#rt_whoami">rt_whoami</A>
+<BR><A HREF="task.html#rt_task_signal_handler">rt_task_signal_handler</A>
+<BR><A HREF="task.html#rt_set_runnable_on_cpus">rt_set_runnable_on_cpus</A>
+<BR><A HREF="task.html#rt_set_runnable_on_cpuid">rt_set_runnable_on_cpuid</A>
+<BR><A HREF="task.html#rt_task_use_fpu">rt_task_use_fpu</A>
+<BR><A HREF="task.html#rt_linux_use_fpu">rt_linux_use_fpu</A>
+<BR><A HREF="task.html#rt_preempt_always">rt_preempt_always</A>
+<BR><A HREF="task.html#rt_preempt_always_cpuid">rt_preempt_always_cpuid</A>
+</BLOCKQUOTE>
+
+<A NAME="timing"></A>
+Timer functions:
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<td><A HREF="timing.html#rt_set_oneshot_mode">rt_set_oneshot_mode</A></td>
+<td width="20">&nbsp;</td>
+<td><A HREF="timing.html#rt_set_periodic_mode">rt_set_periodic_mode</A></td>
+<tr>
+<td><A HREF="timing.html#start_rt_timer">start_rt_timer</A></td>
+<td>&nbsp;</td>
+<td><A HREF="timing.html#stop_rt_timer">stop_rt_timer</A></td>
+<tr>
+<td><A HREF="timing.html#count2nano">count2nano</A></td>
+<td>&nbsp;</td>
+<td><A HREF="timing.html#nano2count">nano2count</A></td>
+<tr>
+<td><A HREF="timing.html#rt_get_time">rt_get_time</A></td>
+<td>&nbsp;</td>
+<tr>
+<td><A HREF="timing.html#rt_get_time_ns">rt_get_time_ns</A></td>
+<td>&nbsp;</td>
+<tr>
+<td><A HREF="timing.html#rt_get_cpu_time_ns">rt_get_cpu_time_ns</A></td>
+<td>&nbsp;</td>
+<tr>
+<td><A HREF="timing.html#next_period">next_period</A></td>
+<td>&nbsp;</td>
+</table>
+</BLOCKQUOTE>
+
+<A NAME="semaphore"></A>
+Semaphore functions:
+<BLOCKQUOTE>
+<A HREF="semaphore.html#rt_sem_init">rt_sem_init</A>
+<BR><A HREF="semaphore.html#rt_sem_delete">rt_sem_delete</A>
+<BR><A HREF="semaphore.html#rt_sem_signal">rt_sem_signal</A>
+<BR><A HREF="semaphore.html#rt_sem_wait">rt_sem_wait</A>
+<BR><A HREF="semaphore.html#rt_sem_wait_if">rt_sem_wait_if</A>
+<BR><A HREF="semaphore.html#rt_sem_wait_until">rt_sem_wait_until</A>
+<BR><A HREF="semaphore.html#rt_sem_wait_timed">rt_sem_wait_timed</A>
+</BLOCKQUOTE>
+
+<A NAME="mbox"></A>
+Mailbox functions:
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_init">rt_mbx_init</A></td>
+<td width=20>&nbsp;</td>
+<td></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_delete">rt_mbx_delete</A></td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_send">rt_mbx_send</A></td>
+<td>&nbsp;</td>
+<td><A HREF="mbox.html#rt_mbx_receive">rt_mbx_receive</A></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_send_wp">rt_mbx_send_wp</A></td>
+<td>&nbsp;</td>
+<td><A HREF="mbox.html#rt_mbx_receive_wp">rt_mbx_receive_wp</A></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_send_if">rt_mbx_send_if</A></td>
+<td>&nbsp;</td>
+<td><A HREF="mbox.html#rt_mbx_receive_if">rt_mbx_receive_if</A></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_send_until">rt_mbx_send_until</A></td>
+<td>&nbsp;</td>
+<td><A HREF="mbox.html#rt_mbx_receive_until">rt_mbx_receive_until</A></td>
+<tr>
+<td><A HREF="mbox.html#rt_mbx_send_timed">rt_mbx_send_timed</A></td>
+<td>&nbsp;</td>
+<td><A HREF="mbox.html#rt_mbx_receive_timed">rt_mbx_receive_timed</A></td>
+</table>
+</BLOCKQUOTE>
+
+<A NAME="message"></A>
+Message handling functions:
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<td><A HREF="message.html#rt_send">rt_send</A></td>
+<td width=20>&nbsp;</td>
+<td><A HREF="message.html#rt_receive">rt_receive</A></td>
+<tr>
+<td><A HREF="message.html#rt_send_if">rt_send_if</A></td>
+<td>&nbsp;</td>
+<td><A HREF="message.html#rt_receive_if">rt_receive_if</A></td>
+<tr>
+<td><A HREF="message.html#rt_send_until">rt_send_until</A></td>
+<td>&nbsp;</td>
+<td><A HREF="message.html#rt_receive_until">rt_receive_until</A></td>
+<tr>
+<td><A HREF="message.html#rt_send_timed">rt_send_timed</A></td>
+<td>&nbsp;</td>
+<td><A HREF="message.html#rt_receive_timed">rt_receive_timed</A></td>
+</table>
+</BLOCKQUOTE>
+
+<A NAME="rpc"></A>
+RPC (Remote Procedure Call) functions:
+<BLOCKQUOTE>
+<A HREF="rpc.html#rt_rpc">rt_rpc</A>
+<BR><A HREF="rpc.html#rt_rpc_if">rt_rpc_if</A>
+<BR><A HREF="rpc.html#rt_rpc_until">rt_rpc_until</A>
+<BR><A HREF="rpc.html#rt_rpc_timed">rt_rpc_timed</A>
+<BR><A HREF="rpc.html#rt_isrpc">rt_isrpc</A>
+<BR><A HREF="rpc.html#rt_return">rt_return</A>
+</BLOCKQUOTE>
+
+<hr>
+
+<h4 align=center>Functions provided by rtai module</h4>
+
+Following there are some function calls, to be used from
+Rtai tasks, for managing interrupts within Rtai and communication services
+between Rtai tasks and Linux processes.
+<P>
+
+<A NAME="service"></A>
+RTAI service functions:
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<td><A HREF="service.html#rt_global_cli">rt_global_cli</A></td>
+<td width=20>&nbsp;</td>
+<td><A HREF="service.html#rt_global_sti">rt_global_sti</A></td>
+<tr>
+<td><A HREF="service.html#rt_global_save_flags">rt_global_save_flags</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_global_restore_flags">rt_global_restore_flags</A></td>
+<tr>
+<td><A HREF="service.html#rt_global_save_flags_and_cli">rt_global_save_flags_and_cli</A></td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td><A HREF="service.html#send_ipi_shorthand">send_ipi_shorthand</A></td>
+<tr>
+<td><A HREF="service.html#send_ipi_logical">send_ipi_logical</A></td>
+<tr>
+<td><A HREF="service.html#rt_assign_irq_to_cpu">rt_assign_irq_to_cpu</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_reset_irq_to_sym_mode">rt_reset_irq_to_sym_mode</A></td>
+<tr>
+<td><A HREF="service.html#rt_request_global_irq">rt_request_global_irq</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_free_global_irq">rt_free_global_irq</A></td>
+<tr>
+<td><A HREF="service.html#request_RTirq">request_RTirq</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#free_RTirq">free_RTirq</A></td>
+<tr>
+<td><A HREF="service.html#rt_request_linux_irq">rt_request_linux_irq</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_free_linux_irq">rt_free_linux_irq</A></td>
+<tr>
+<td><A HREF="service.html#rt_pend_linux_irq">rt_pend_linux_irq</A></td>
+<tr>
+<td><A HREF="service.html#rt_request_srq">rt_request_srq</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_free_srq">rt_free_srq</A></td>
+<tr>
+<td><A HREF="service.html#rt_pend_linux_srq">rt_pend_linux_srq</A></td>
+<tr>
+<td><A HREF="service.html#rt_request_timer">rt_request_timer</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_free_timer">rt_free_timer</A></td>
+<tr>
+<td><A HREF="service.html#rt_mount_rtai">rt_mount_rtai</A></td>
+<td>&nbsp;</td>
+<td><A HREF="service.html#rt_umount_rtai">rt_umount_rtai</A></td>
+<tr>
+<td>rt_ack_irq</td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td>rt_mask_and_ack_irq</td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td>rt_unmask_irq</td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td>rt_startup_irq</td>
+<td>&nbsp;</td>
+<td>rt_shutdown_irq</td>
+<tr>
+<td>rt_enable_irq</td>
+<td>&nbsp;</td>
+<td>rt_disable_irq</td>
+<tr>
+<td>enable_RTirq</td>
+<td>&nbsp;</td>
+<td>disable_RTirq</td>
+</table>
+</BLOCKQUOTE>
+
+<hr>
+
+<h4 align=center>Functions provided by rtai_fifos module</h4>
+
+<A NAME="fifo"></A>
+RTAI FIFO communication functions (these are a modification
+of RT-FIFO devices developed by Michael Barabanov for
+<a href="http://www.rtlinux.org/">NMT_RTLinux</a>):
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<th align=left>Called from RT task
+<th width=20>&nbsp;
+<th align=left>Called from Linux process
+<tr>
+<td><A HREF="fifo.html#rtf_create">rtf_create</A></td>
+<td>&nbsp;</td>
+<td>rtf_open_sized</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>[open]</td>
+<tr>
+<td><A HREF="fifo.html#rtf_destroy">rtf_destroy</A></td>
+<td>&nbsp;</td>
+<td>[close]</td>
+<tr>
+<td><A HREF="fifo.html#rtf_reset">rtf_reset</A></td>
+<td>&nbsp;</td>
+<td>rtf_reset</td>
+<tr>
+<td><A HREF="fifo.html#rtf_resize">rtf_resize</A></td>
+<td>&nbsp;</td>
+<td>rtf_resize</td>
+<tr>
+<td><A HREF="fifo.html#rtf_put">rtf_put</A></td>
+<td>&nbsp;</td>
+<td>[write]</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_write_timed</td>
+<tr>
+<td><A HREF="fifo.html#rtf_get">rtf_get</A></td>
+<td>&nbsp;</td>
+<td>[read]</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_read_all_at_once</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_read_timed</td>
+<tr>
+<td><A HREF="fifo.html#rtf_create_handler">rtf_create_handler</A></td>
+<td>&nbsp;</td>
+<td></td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_set_async_sig</td>
+</table>
+</BLOCKQUOTE>
+
+In Linux RTL fifos have to be created by<code>
+mknod&nbsp;/dev/rtf<i>&lt;x&gt;</i>&nbsp;c&nbsp;63&nbsp;<i>&lt;x&gt;</i>
+</code>where <i>&lt;x&gt;</i>
+is the minor device number, from 0 to 63; thus
+on the Linux side RTL fifos can be used as standard character devices.
+
+<p>
+<A NAME="fifosem"></A>
+RTAI FIFO semaphore functions:
+<BLOCKQUOTE>
+<table border=0 cellspacing=0 cellpadding=0>
+<tr>
+<th align=left>Called from RT task
+<th width=20>&nbsp;
+<th align=left>Called from Linux process
+<tr>
+<td>rtf_sem_init</td>
+<td>&nbsp;</td>
+<td>rtf_sem_init</td>
+<tr>
+<td>rtf_sem_post</td>
+<td>&nbsp;</td>
+<td>rtf_sem_post</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_sem_wait</td>
+<tr>
+<td>rtf_sem_trywait</td>
+<td>&nbsp;</td>
+<td>rtf_sem_trywait</td>
+<tr>
+<td></td>
+<td>&nbsp;</td>
+<td>rtf_sem_timed_wait</td>
+<tr>
+<td>rtf_sem_destroy</td>
+<td>&nbsp;</td>
+<td>rtf_sem_destroy</td>
+</table>
+</BLOCKQUOTE>
+
+<p>
+<A NAME="fifoaux"></A>
+RTAI FIFO auxiliary functions:
+<BLOCKQUOTE>
+    rt_printk
+<BR>rt_print_to_screen
+</BLOCKQUOTE>
+
+<HR>
+
+<P>The distribution contains some examples on how to use
+the above described services in subdirectories of directory examples.
+<p>
+Document written by: E. Bianchi, L. Dozio, P. Mantegazza.
+<br>
+Dipartimento di Ingegneria Aerospaziale
+<br>
+Politecnico di Milano
+<br>
+e-mail: <a href="mailto:mantegazza@aero.polimi.it">mantegazza@aero.polimi.it</a>
+<br>
+e-mail: <a href="mailto:dozio@aero.polimi.it">dozio@aero.polimi.it</a>
+<p>
+Revised and updated by <a href="http://www.sztaki.hu/~kissg/">Gábor Kiss</a>
+<br>
+<a href="http://www.sztaki.hu">Computer and Automation Institute</a>
+of Hungarian Academy of Sciences
+
+</BODY>
+</HTML>

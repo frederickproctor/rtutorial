@@ -1,0 +1,161 @@
+<html>
+<head>
+<title>THE BASICS OF RT LINUX</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./tutorial.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex01_periodic.htm">[next]</a>
+
+<h1>The Basics of Real-Time Linux</h1>
+
+<h2>RT Linux Tasks are Kernel Modules, not Linux Programs</h2>
+<ul>
+<li>
+RT Linux tasks are "kernel modules," meaning they run as part of the
+privileged Linux kernel, similar to device drivers. 
+<li>In both the RTAI
+and RTL flavors of RT Linux, the principle is the same:
+<ul>
+<li>a real-time
+scheduler replaces the original Linux scheduler,
+<li>intercepts the timer
+interrupt and external device interrupts,
+<li>runs any real-time code
+associated with these, and
+<li>runs any normal Linux processes in the
+time left over.
+</ul>
+<li>
+Kernel modules, like device drivers, execute in a primitive
+environment, without direct access to many user-level Linux facilities
+like terminal or file I/O.
+<ul><li> Any reasonably large real-time application
+will want these features, and these applications typically are split
+between real-time and non-real-time parts, with the non-real-time
+parts using all the nice Linux features.
+<li> Communication between the two
+parts can be accomplished numerous ways, using shared memory,
+first-in, first-out (FIFO) queues and other communication pathways
+we'll describe later.
+<li>This split complicates RT Linux programming, in
+comparison with other real-time operating systems in which everything
+runs in real-time.
+<li>On the other hand, the simpler environment makes RT
+Linux quite fast.
+</ul>
+<li>Warning! Since your real-time code is running as a kernel module,
+it is effectively as privileged as the kernel. Unlike with regular
+Linux processes, coding errors may crash the system, requiring a
+reboot.
+<p>
+<p>
+"With great power comes great responsibility." <i>Uncle Ben to Peter Parker, aka Spider-Man.</i>
+</ul>
+
+<h2>Kernel Modules are Dynamically Loaded</h2>
+<ul>
+<li>Kernel modules are dynamically loaded using the 'insmod'
+insert module program, and 
+<li>unloaded (stopped), using the 'rmmod' "remove module"
+program.
+<li>These programs are only available to the root user
+(administrator), although there are ways to avoid giving real-time
+programmers true root access to the system. 
+</ul>
+
+<h2>C is the Preferred Language</h2>
+<ul>
+<li>Linux is written in the C programming language (with some assembly
+language), as are RTAI and RTL, so C is the preferred language for
+writing RT Linux programs.
+<li>Other 
+languages (e.g., C++) can be used, but there are caveats that make C
+the much-preferred language for RT Linux development.
+<li>The examples in
+this tutorial are all written in C. 
+<li>C programs are normally compiled into full executable programs,
+but kernel modules are compiled into object code, with final linking
+suppressed.
+<ul><li>Instead of a full-blown executable, your code will be
+a loadable object '.o' "dot-oh" file, 
+<li>possibly
+the result of linking together several other '.o' files if your
+project is split into numerous 
+files for convenience or clarity. 
+</ul>
+<li>In C, a program's "entry point" where execution begins is a function
+called 'main()'.
+<ul><li>For a kernel module, this
+entry point is called 'init_module()'.
+<li>'insmod' looks for this symbol
+when loading the code.
+</ul>
+<li>A program's "exit point" is a function called 'cleanup_module()'. This
+will be called when 'rmmod' removes the kernel module.
+</ul>
+Here is the minimal C code that illustrates this:
+<pre>
+/* simple.c */
+
+#define __KERNEL__
+#define MODULE
+#include &lt;linux/kernel.h&gt;
+#include &lt;linux/module.h&gt;
+
+int init_module(void)
+{
+  printk("hello, world!\n"); /* printk = kernel printf, to the console */
+
+  return 0;
+}
+
+void cleanup_module(void)
+{
+  printk("goodbye, world!\n");
+
+  return;
+}
+
+/* end of simple.c */
+</pre>
+<h2>The Mechanics of Compiling and Running</h2>
+<ul><li>The mechanics of compiling C code vary depending upon which compiler
+you use.
+<li>The Free Software Foundation's Gnu C compiler 'gcc' is installed with most Linux
+distributions.
+<li>With 'gcc', to compile this
+example you would do:
+
+<pre>
+gcc -c simple.c
+</pre>
+
+<p><li>The '-c' "dash-c" means don't compile to
+a full-blown executable, just leave it as the loadable object file 'simple.o'.
+<li>To run this, you would use the 'insmod' program:
+<pre>
+insmod simple.o
+</pre>
+<p><li>To stop this, you would use the 'rmmod' program, passing the name of
+the module without the '.o' suffix:
+<pre>
+rmmod simple
+</pre>
+<p><li>Note that the output of the 'printk()' calls in simple.c appears in the
+main console, which may not be where you ran the
+program, especially if you're running in the windowing environment, X
+Windows.
+<li>You can get to the main console window with Control-Alt-F1 on
+most Linuxes, where the other function keys toggle between various
+other consoles, and X Windows.
+</ul>
+
+<hr>
+<a href="./ex01_periodic.htm">Next: Example 1, Pure Periodic Scheduling of a Single Task</a>
+<p><a href="./tutorial.htm">Back: Start of Tutorial</a>
+
+</body>
+</html>

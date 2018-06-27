@@ -1,0 +1,738 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Task functions</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rt_task_init"></A>
+<A NAME="rt_task_init_cpuid"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_init, rt_task_init_cpuid - create a new real time task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_init (RT_TASK *</B><I>task</I><B>,
+void (*</B><I>rt_thread</I><B>)(int),
+int </B><I>data</I><B>,
+int </B><I>stack_size</I><B>,
+int </B><I>priority</I><B>,
+int </B><I>uses_fpu</I><B>,
+void(*</B><I>signal</I><B>)(void));</B>
+<p>
+<B>int rt_task_init_cpuid (RT_TASK *</B><I>task</I><B>,
+void (*</B><I>rt_thread</I><B>)(int),
+int </B><I>data</I><B>,
+int </B><I>stack_size</I><B>,
+int </B><I>priority</I><B>,
+int </B><I>uses_fpu</I><B>,
+void(*</B><I>signal</I><B>)(void),
+unsigned int </b><i>cpuid</i></b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_init</b> and <b>rt_task_init_cpuid</b> create a real time task.
+<BR>
+<I>task</I> is a pointer to an RT_TASK type structure
+whose space must be provided by the application. It must be kept during
+the whole lifetime of the real time task and cannot be an automatic variable.
+<BR>
+<I>rt_thread</I> is the entry point of the task function.
+The parent task can pass a single integer value <I>data</I> to the
+new task.
+<BR>
+<I>stack_size</I> is the size of the stack to be used
+by the new task, and <I>priority</I> is the priority to be given
+the task. The highest priority is 0, while the lowest is
+RT_LOWEST_PRIORITY (or RT_SCHED_LOWEST_PRIORITY in newer versions).
+<BR>
+<I>uses_fpu</I> is a flag. Nonzero value indicates that the task
+will use the floating point unit.
+<BR>
+<I>signal</I> is a function that is called, within the
+task environment and with interrupts disabled, when the task becomes the
+current running task after a context switch.
+<p>
+The newly created real time task is initially in a suspend
+state. It is can be made active either with
+<b>rt_task_make_periodic</b>, <b>rt_task_make_periodic_relative_ns</b>
+or <b>rt_task_resume</b>.
+<p>
+On multiprocessor systems <b>rt_task_init_cpuid</b> assigns
+task to a specific CPU <i>cpuid</i>.
+<b>rt_task_init</b> automatically selects which
+CPU will the task run on. This assignment may be changed by calling
+<b>rt_set_runnable_on_cpus</b> or <b>rt_set_runnable_on_cpuid</b>.
+If <i>cpuid</i> is invalid <b>rt_task_init_cpuid</b> falls back to
+automatic CPU selection.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	Task structure pointed by <i>task</i> is already in use.
+	</dd></dl>
+	<dl><dt>
+	-ENOMEM
+	</dt><dd>
+	<I>stack_size</I> bytes could not be allocated for the stack.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_delete"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_delete - delete a real time task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_delete (RT_TASK *</B><I>task</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_delete</b> deletes a real time task previously created by
+<b>rt_task_init</b> or <b>rt_task_init_cpuid</b>.
+<BR>
+<I>task</I> is the pointer to the task structure.
+<BR>
+If task <i>task</i> was waiting for a semaphore it is removed from the
+semaphore waiting queue else any other task blocked on message exchange
+with <i>task</i> is unvlocked.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_make_periodic"></A>
+<A NAME="rt_task_make_periodic_relative_ns"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_make_periodic, rt_task_make_periodic_relative_ns -
+	make a task run periodically
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_make_periodic (RT_TASK *</b><I>task</I><b>,
+	RTIME </b><I>start_time</I><b>,
+	RTIME </b><I>period</I><b>);</B>
+<p>
+<B>int rt_task_make_periodic_relative_ns (RT_TASK *</b><I>task</I><b>,
+	RTIME </b><I>start_delay</I><b>,
+	RTIME </b><I>period</I><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_make_periodic</b> and <b>rt_task_make_periodic_relative_ns</b>
+mark the task <i>task</i>,
+previously created with <b>rt_task_init</b>, as suitable for a
+periodic execution, with period <i>period</i>,
+when <b>rt_task_wait_period</b> is called.
+<BR>
+The time of first execution is given by <I>start_time</I> or
+<I>start_delay</I>.
+<I>start_time</I> is an absolute value measured in clock ticks.
+<I>start_delay</I> is relative to the current time and measured in nanosecs.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_wait_period">
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_wait_period - wait till next period
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_task_wait_period (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_wait_period</b> suspends the execution of the currently running
+real time
+task until the next period is reached. The task must have been previously
+marked for execution with <b>rt_task_make_periodic</b> or
+<b>rt_task_make_periodic_relative_ns</b>.
+<BR>
+Note that the task is suspended only temporarily, i.e.
+it simply gives up control until the next time period.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_yield"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_yield - yield the current task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_task_yield (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_yield</b> stops the current task and takes it at the end of the
+list of ready tasks, with the same priority. The scheduler makes the
+next ready task of the same priority active.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_suspend"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_suspend - suspend a task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_suspend (RT_TASK *</b><I>task</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_suspend</b> suspends execution of the task <I>task</I>.
+It will not be executed until a call to
+<b>rt_task_resume</b> or <b>rt_task_make_periodic</b> is made.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_resume"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_resume - resume a task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_resume (RT_TASK *</B><I>task</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_resume</b> resumes execution of the task
+<I>task</I> previously suspended by <b>rt_task_suspend</b> or
+makes a newly created task ready to run.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_busy_sleep"></A>
+<A NAME="rt_sleep"></A>
+<A NAME="rt_sleep_until"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_busy_sleep, rt_sleep, rt_sleep_until - delay/suspend execution for a while
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_busy_sleep (int </B><I>nanosecs</I><B>);</B>
+<p>
+<B>void rt_sleep (RTIME </B><I>delay</I><B>);</B>
+<p>
+<B>void rt_sleep_until (RTIME </B><I>time</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_busy_sleep</b> delays the execution of the caller task
+without giving back the control to the scheduler.
+This function burns away CPU cycles in a busy wait loop
+It may be used for very short synchronization delays only.
+<br>
+<I>nanosecs</I> is the number of nanoseconds to wait.
+<p>
+<b>rt_sleep</b> suspends execution of the caller task for a
+time of <I>delay</I> internal count units. During this time the
+CPU is used by other tasks.
+<p>
+<b>rt_sleep_until</b> is similar to <b>rt_sleep</b> but the
+parameter <I>time</I> is the absolute time till the task have to
+be suspended. If the given time is already passed this call has no effect.
+<p>
+Note: a higher priority task or interrupt handler can run during wait
+so the actual time spent in these functions may be longer
+than the specified.
+</dd></dl>
+
+<dl><dt>
+<H3>NOTE</H3>
+</dt><dd>
+A higher priority task or interrupt handler can run during wait
+so the actual time spent in these functions may be longer
+than the specified.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_get_task_state"></A>
+
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_get_task_state - query task state
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_get_task_state (RT_TASK *</B><I>task</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_get_task_state</b> returns the state of a real time task.
+<BR>
+<I>task</I> is a pointer to the task structure.
+<p>
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+Task state is formed by the bitwise OR of one or more of the following
+flags:
+	<dl><dt>
+	READY
+	</dt><dd>
+	Task <i>task</i> is ready to run (i.e. unblocked).
+	</dd></dl>
+	<dl><dt>
+	SUSPENDED
+	</dt><dd>
+	Task <i>task</i>  is suspended.
+	</dd></dl>
+	<dl><dt>
+	DELAYED
+	</dt><dd>
+	Task <i>task</i> waits for its next running period or expiration
+	of a timeout.
+	</dd></dl>
+	<dl><dt>
+	SEMAPHORE
+	</dt><dd>
+	Task <i>task</i> is blocked on a semaphore.
+	</dd></dl>
+	<dl><dt>
+	SEND
+	</dt><dd>
+	Task <i>task</i> sent a message and waits for the receiver task.
+	</dd></dl>
+	<dl><dt>
+	RECEIVE
+	</dt><dd>
+	Task <i>task</i> waits for an incoming message.
+	</dd></dl>
+	<dl><dt>
+	RPC
+	</dt><dd>
+	Task <i>task</i> sent a Remote Procedure Call and the receiver
+	was not get it yet.
+	</dd></dl>
+	<dl><dt>
+	RETURN
+	</dt><dd>
+	Task <i>task</i> waits for reply to a Remote Procedure Call.
+	</dd></dl>
+<p>
+Note: the returned task state is just an approximative information.
+Timer and other hardware interrupts may cause a change in the state
+of the queried task before the caller could evaluate the returned value.
+Caller should disable interrupts if it wants reliable info about
+an other task.
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+<b>rt_get_task_state</b> does not perform any check on pointer <i>task</i>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+
+<A NAME="rt_whoami"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_whoami - get the task pointer of the current task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>RT_TASK *rt_whoami (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+Calling <b>rt_whoami</b> a task can get a pointer to its own
+task structure.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+The pointer to the current task is returned.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_signal_handler"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_signal_handler - set the signal handler of a task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_task_signal_handler (RT_TASK *</B><I>task</I><B>,
+	void (*</B><I>handler</I><B>)(void));</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_signal_handler</b> installs or changes the signal function
+of a real time task.
+<BR>
+<I>task</I> is a pointer to the real time task
+<BR>
+<I>handler</I> is the entry point of the signal function.
+<BR>
+Signal handler function can be set also when the task is
+newly created with <b>rt_task_init</b>. Signal handler is a
+function called within the task environment and with interrupts disabled,
+when the task becomes the current running task after a context switch.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_set_runnable_on_cpus"></A>
+<A NAME="rt_set_runnable_on_cpuid"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_set_runnable_on_cpus, rt_set_runnable_on_cpuid - assign CPUs to a task
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_set_runnable_on_cpus (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>cpu_mask</I><B>);</B>
+<p>
+<B>void rt_set_runnable_on_cpuid (RT_TASK *</B><I>task</I><B>,
+	unsigned int </B><I>cpuid</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_set_runnable_on_cpus</b>, <b>rt_set_runnable_on_cpuid</b> select
+one or more CPUs which are allowed to run task <I>task</I>.
+<b>rt_set_runnable_on_cpuid</b> assigns task to a specific CPU however
+<b>rt_set_runnable_on_cpus</b> magically selects one CPU from the given
+set which task <I>task</I> will run on.
+<br>
+Bit&lt;n&gt; of <I>cpu_mask</I> enables CPU&lt;n&gt;.
+<p>
+If no CPU selected by <I>cpu_mask</I> or <I>cpuid</I> is available,
+both functions choose a possible CPU automagically.
+<p>
+Note: This call has no effect on uniprocessor systems.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_task_use_fpu"></A>
+<A NAME="rt_linux_use_fpu"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_task_use_fpu, rt_linux_use_fpu - set indication of FPU usage
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>int rt_task_use_fpu (RT_TASK* </B><I>task</I><B>,
+	int </B><I>use_fpu_flag</I><B>);</B>
+<p>
+<B>void rt_linux_use_fpu (int </B><I>use_fpu_flag</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_task_use_fpu</b> informs the scheduler that floating point
+arithmetic operations will be used by the real time task <I>task</I>.
+<p>
+<b>rt_linux_use_fpu</b> informs the scheduler that floating point
+arithmetic operations will be used the background task (i.e.
+the Linux kernel itself and <em>all of its processes</em>!).
+<p>
+If <I>use_fpu_flag</I> has nonzero value, FPU context is also switched
+when <i>task</i> or the kernel became active. This makes task switching slower.
+<p>
+Initial value of this flag is set by <b>rt_task_init</b> when the
+real time task is created. By default Linux "task" has this flag cleared.
+It can be set with <b>LinuxFpu</b> command line parameter of the
+<b>rtai_sched</b> module.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+	<dl><dt>
+	-EINVAL
+	</dt><dd>
+	<I>task</I> does not refer to a valid task.
+	</dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_preempt_always"></A>
+<A NAME="rt_preempt_always_cpuid"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_preempt_always, rt_preempt_always_cpuid - enable hard preemption
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai_sched.h"
+<p>
+<B>void rt_preempt_always (int </B><I>yes_no</I><B>);</B>
+<p>
+<B>void rt_preempt_always_cpuid (int </B><I>yes_no</I><B>,
+	unsigned int</b><i>cpu_id</i><b>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+In the oneshot mode a timed task is made active/current at
+the expiration of the timer shot. The next timer expiration is programmed
+by choosing among the timed tasks the one with a priority higher than the
+current after the current has released the CPU, always assuring the Linux
+timing. While this policy minimizes the programming of the oneshot mode,
+enhancing efficiency, it can be unsuitable when a task has to be guarded
+against looping by  watch dog task with high priority value, as in such a case
+the latter as no chance of running.
+<p>
+Calling these functions with nonzero value assures that a timed high priority
+preempting task is always programmed to be fired while another task is current.
+The default is no immediate preemption in oneshot mode, firing of the next shot
+programmed only after the current task releases the CPU.
+<p>
+Initial value of this flag can be set with <b>PreemptAlways</b>
+command line parameter of the <b>rtai_sched</b> module.
+<p>
+Note: currently the booth functions are equal, parameter <i>cpu_id</i>
+is ignored.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#task">[return to index]</A></p>
+
+</BODY>
+</HTML>

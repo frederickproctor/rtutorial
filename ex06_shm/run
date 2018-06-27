@@ -1,0 +1,37 @@
+#!/bin/sh
+
+echo loading RT Linux if needed...
+../insrtl || exit 1
+
+echo running using Peterson\'s Algorithm...
+#'
+
+sudo rmmod shm_mod 2> /dev/null
+sudo insmod shm_mod.ko || exit 1
+./shm_app &
+sleep 10
+kill -INT $!
+sleep 1
+sudo rmmod shm_mod 2> /dev/null
+
+echo running using Test and Set...
+
+sudo rmmod shm_mod 2> /dev/null
+sudo insmod shm_mod.ko WHICH_ALGO=2 || exit 1
+./shm_app ARG &
+sleep 10
+kill -INT $!
+sleep 1
+sudo rmmod shm_mod 2> /dev/null
+
+echo running using Head/Tail...
+
+sudo rmmod shm_mod 2> /dev/null
+sudo insmod shm_mod.ko WHICH_ALGO=3 || exit 1
+./shm_app ARG ARG &
+sleep 10
+kill -INT $!
+sleep 1
+sudo rmmod shm_mod 2> /dev/null
+
+exit 0

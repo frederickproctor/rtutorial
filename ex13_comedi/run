@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# Comedi provides kernel module device drivers for a variety of I/O
+# boards. Comedilib is the convenient Linux application programming
+# interface to the device drivers. KComedilib gives the same convenient
+# programming interface to RTAI kernel modules. KComedilib is provided
+# as part of Comedi.
+
+# Put a digital voltmeter across pins 2 and 25 of the parallel port
+# and watch the reading toggle between 0 V and either 3.3 or 5 V
+# depending on your hardware.
+
+# Put a jumper wire between output pin 2 and input pin 15 and see how
+# the input tracks the output.
+
+# First load the parallel port driver and kcomedi support
+sudo modprobe comedi_parport kcomedilib
+
+# This will automatically load some other necessary modules, i.e.,
+# lsmod | grep comedi
+#   comedi_parport          4608  0 
+#   kcomedilib             16640  0 
+#   comedi                 42192  2 comedi_parport,kcomedilib
+#   rtai_sched            102160  1 kcomedilib
+#   rtai_hal               38180  3 kcomedilib,comedi,rtai_sched
+
+# Configure the parallel port to be at its default address
+sudo comedi_config /dev/comedi0 comedi_parport 0x378
+
+# Now load our kernel module:
+echo loading RT task...
+sudo rmmod comedi_task 2> /dev/null
+sudo insmod comedi_task.ko || exit 1
+
+# Wait some time and enjoy watching your voltmeter:
+echo waiting 10 seconds...
+sleep 10
+
+# Stop it:
+echo removing RT task...
+sudo rmmod comedi_task
+
+echo look at the output log
+
+dmesg | grep comedi_task:
+
+exit 0

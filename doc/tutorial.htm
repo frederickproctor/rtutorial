@@ -1,0 +1,168 @@
+<html>
+<head>
+<title>REAL-TIME LINUX TUTORIAL</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./basics.htm">[next]</a>
+
+<h1>Real-Time Linux Introduction</h1>
+
+<ul>
+<li>Linux is a free Unix-like operating system that runs on a variety
+of platforms, including PCs. Numerous Linux distributions such as
+Red Hat, Debian and Mandrake bundle the Linux OS with tools, productivity
+software, games, etc.
+<li>The Linux scheduler, like that of other OSes such as Windows or MacOS, is
+designed for best average response, so it feels fast and interactive
+even when running many programs.
+<ul>
+<li>However, it doesn't guarantee that any particular task will always
+run by a given deadline. A task may be suspended for an arbitrarily
+long time, for example while a Linux device driver services a disk
+interrupt.
+<li>Scheduling guarantees are offered by real-time operating
+systems (RTOSes), such as QNX, LynxOS or VxWorks. RTOSes are typically
+used for control or communications applications, not general purpose
+computing.
+</ul>
+<li>Linux has been adapted for real-time support. These adaptations
+are termed "Real-Time Linux" (RT Linux).
+<li>Numerous versions of RT Linux are available, free or commercial.
+Two commonly available free RT Linux versions are 
+<ul>
+<li>the
+Real-Time Application Interface (RTAI), developed
+by the Milan Polytechnical University and available at <a
+href="http://www.aero.polimi.it/~rtai/">www.aero.polimi.it/~rtai/</a>
+<li>RTL, developed by New Mexico Tech and now maintained by FSM Labs,
+Inc., with a free version available at <a
+href="http://www.rtlinux.org">www.rtlinux.org</a>.
+</ul>
+<li>These RT Linux systems are patches to the basic Linux kernel
+source code. Instructions for building an RT Linux system from a
+the Linux source code are provided with these RT Linux
+systems. Briefly the process involves setting up the basic Linux
+system, getting the latest Linux kernel source code from <a href="http://www.kernel.org">www.kernel.org</a>,
+patching the kernel source code, and compiling the patched
+kernel. More information on RT Linux in general is provided in <a
+href="./references.htm#AEO">[AEO].</a>
+<li>See <a
+href="http://www.isd.mel.nist.gov/projects/rtlinux">www.isd.mel.nist.gov/projects/rtlinux</a>
+for more information.
+<p>
+</ul>
+
+<h2><a name="index">This Real-Time Linux Tutorial</a></h2>
+
+This tutorial is composed of examples that begin with the simple
+exection of a fixed-period task, and introduces other topics such as
+multiple tasks of varying periods and priorities, interrupt service
+routines, and communication and synchronization with non-realtime
+processes. The source code is highly commented when new concepts are
+introduced. 
+<p>
+Examples are located in subdirectories, and the tutorial will proceed
+with these: 
+<ul>
+<li>
+<a href="./basics.htm">The Basics</a> -- what RT Linux is, how to set up and
+compile real time programs
+<li>
+<a href="./ex01_periodic.htm">A Single Periodic Task</a> -- demonstrates a single fixed-period task that toggles
+the speaker at 1 kHz, also demonstrating how to read and write I/O
+addresses 
+<li>
+<a href="./ex02_twoper.htm">Two Periodic Tasks</a> -- demonstrates two fixed-period tasks, one that toggles
+the speaker at between 100 Hz and 10 kHz and another that sets the
+frequency each second. The role of priorities is described.
+<li>
+<a href="./ex03_variable.htm">A Variable-Period Task</a> -- demonstrates a single variable-period task that
+smoothly changes the speaker frequency between 1 kHz and 10 kHz. The
+differences between periodic and variable execution are described.
+<li>
+<a href="./ex04_fifo.htm">FIFO Communication</a> -- demonstrates the use of first-in, first-out queues
+(FIFOs) to exchange data with a regular Linux process. The user enters
+a frequency and the RT task acknowledges, then toggles the speaker at
+that frequency.
+<li>
+<a href="./ex05_isr.htm">Interrupt Service Routines</a> -- demonstrates an interrupt service routine (ISR). The ISR
+is attached to the parallel port interrupt, and increments and writes
+a number to a FIFO each time the interrupt is triggered.
+<li>
+<a href="./ex06_shm.htm">Shared Memory Communication</a> -- demonstrates shared memory communication between an RT task
+and a user-level Linux process. 
+<li>
+<a href="./ex07_sem.htm">Semaphores</a> -- demonstrates how to use semaphores to ensure consistent
+access to shared data structures.
+<li>
+<a href="./ex08_rcservo.htm">RC Airplane Servomotor Control</a> -- demonstrates the control of two RC airplane servo motors using 
+two variable-period tasks. Through a FIFO a user process can set
+the position and speed of each motor indepedently.
+<li>
+<a href="./ex09_ledclock.htm">LED Wand Clock</a> -- demonstrates an LED wand clock using many of the concepts
+previously introduced: two tasks, an ISR, and FIFOs.
+<li>
+<a href="./ex10_stack.htm">Determining Stack Size</a> -- demonstrates how to estimate the stack size for a task.
+<li>
+<a href="./ex11_jitter.htm">Measuring Timing Jitter</a> -- demonstrates how to read the Pentium time stamp counter
+and measure the timing jitter for a periodic task. 
+<li>
+<a href="./ex12_math.htm">Floating Point in RT Tasks</a> --
+demonstrates how to use floating point in real-time tasks and ensure
+that the floating point unit context is saved and restored
+</ul>
+Supplementary Material:
+<ul>
+<li>
+<a href="./mutex.htm">Data Consistency Techniques</a> -- describes how
+to prevent shared data from being corrupted by simultaneously
+executing processes
+<li><a href="./ack.htm">Acknowledgements</a>
+<li><a href="./references.htm">References</a>
+</ul>
+To build the tutorial, do the following in the top-level directory:
+<pre>
+./configure
+make
+make install
+</pre>
+To run the examples, change into the appropriate subdirectory and
+execute the 'run' script, e.g., 
+<pre>
+cd ex01_periodic
+./run
+</pre>
+<hr>
+No approval or endorsement of any commercial product by the National
+Institute of Standards and Technology is intended or implied. Certain
+commercial equipment, instruments, or materials are identified in this
+report in order to facilitate understanding. Such identification does
+not imply recommendation or endorsement by the National Institute of
+Standards and Technology, nor does it imply that the materials or
+equipment identified are necessarily the best available for the
+purpose.
+<p>
+This publication was prepared by United States Government employees as
+part of their official duties and is, therefore, a work of the
+U.S. Government and not subject to copyright.
+<p>
+Contact:
+<p>Fred Proctor
+<br>Group Leader, Control Systems Group
+<br>National Institute of Standards and Technology
+<br>100 Bureau Drive, Stop 8230
+<br>Gaithersburg, MD 20899-8230
+<br>&#102;&#114;&#101;&#100;&#101;&#114;&#105;&#99;&#107;&#46;&#112;&#114;&#111;&#99;&#116;&#111;&#114;&#64;&#110;&#105;&#115;&#116;&#46;&#103;&#111;&#118;
+
+<hr>
+<a href="./basics.htm">Next: The Basics of Real-Time Linux</a>
+
+<p>
+<center>
+Last modified: 11-Jan-2006
+</center>
+
+</body>
+</html>

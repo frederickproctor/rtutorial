@@ -1,0 +1,119 @@
+<html>
+<head>
+<title>EXAMPLE 12: FLOATING POINT IN REAL-TIME TASKS</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex11_jitter.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ack.htm">[next]</a>
+
+<h1>Example 12: Floating Point in Real-Time Tasks</h1>
+<p>
+This example demonstrates how to use floating-point math in real-time
+tasks. Aside from loading the RT Linux math library, which is done
+in the usual "insrtl" script along with support for scheduling, FIFOs,
+etc., you need to signify that you want the floating point unit (FPU)
+registers to be saved and restored by RT Linux. Otherwise, these are
+left alone, and the use of the FPU by an RT task will clobber the
+floating point calculations of any Linux program. This is never
+desirable behavior, so always make sure to enable FPU save/restore in
+your RT task if you use floating point.
+<p>
+Refer to the <a
+href="../ex12_math/math_task.c">commented real-time
+source code</a> and the <a
+href="../ex12_math/math_app.c">commented application
+source code</a> for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>When the RT Linux scheduler interrupt service routine runs, it
+saves the context of the currently executing Linux process, including
+microprocessor registers and the stack frame. When it's done with the
+RT tasks, it restores them so the interrupted Linux process can resume
+correctly. 
+<li>However, by default RT Linux does not save/restore the context of
+the floating-point unit (FPU). This is because it takes more time to
+do so, and many RT tasks don't use the FPU.
+<li>To tell RT Linux that normal Linux applications will use the FPU
+(e.g., the calculator, Matlab, etc.), call
+<pre>
+rt_linux_use_fpu(1); /* tell RT Linux that Linux wants the FPU saved */
+</pre>
+This can be done once during the initialization of your RT
+application. If you know in advance that no Linux process will be
+using floating point, you can omit this.
+<li>Each task that uses floating point must also set a flag indicating
+that FPU context must be saved and restored when it runs. This can be
+done by passing an argument to 'rt_task_init()', e.g.,
+<pre>
+rt_task_init(&rt_task, task_code, initial_arg, STACK_SIZE, RT_LOWEST_PRIORITY,
+             1, /* uses floating point unit */
+             signal_handler);
+</pre>
+Alternatively, the task can selectively turn FPU context handling off
+and on during execution, for example to speed things up in sections
+where no floating point will be done, by calling 'rt_task_use_fpu()', e.g.,
+<pre>
+rt_task_use_fpu(1); /* tell RT Linux that this task will use the FPU */
+</pre>
+<li>This demo sets up a single periodic task that increments a
+floating point value by some small amount, computes the sine and
+cosine, and increments a cumulative count by sin^2 + cos^2 = 1, thus
+flexing the floating point unit (FPU).
+<li>In this task, every second the FPU
+save/restore flag is alternately set and cleared. When cleared, the
+FPU registers are not saved, thus rendering all Linux process
+floating-point calculations useless.
+<li>A companion process to this
+task runs a big sum computation and shows what the effect of bad FPU
+context looks like: terrible floating-point results for one second,
+good ones for the next second, etc.:
+<pre>
+...
+50000005000000.000000
+50000005000000.000000
+...
+nan
+nan
+nan
+...
+50000005000000.000000
+50000005000000.000000
+...
+</pre>
+The 'nan' here means "not a number," that is, the floating point value
+is junk that does not conform to the IEEE floating point
+specification.
+<li>Note that when you run the demo, you may get good output all the
+time. It depends on the vagaries of when the Linux and RT tasks
+execute. Don't assume that if this demo shows good output, you don't
+need to call the aforementioned functions.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex12_math' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Floating Point" button.
+<p>You'll see diagnostics messages printing out.
+
+<p><a href="../ex12_math/math_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex12_math/math_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ack.htm">Next: Acknowledgements</a>
+<p><a href="./ex11_jitter.htm">Back: Example 11, Measuring Timing
+Jitter</a> 
+
+</body>
+</html>

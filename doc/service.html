@@ -1,0 +1,537 @@
+<HTML>
+<HEAD>
+   <TITLE>RTAI 1.0 documentation - Service functions</TITLE>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="Generator" CONTENT="VIM - Vi IMproved 5.3">
+</HEAD>
+<BODY>
+
+<A NAME="rt_global_cli"></A>
+<A NAME="rt_global_sti"></a>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_global_cli, rt_global_sti - disable/enable interrupts
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_global_cli (void);</B>
+<p>
+<B>void rt_global_sti (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_global_cli</b> hard disables interrupts (cli) on the requesting cpu and
+acquires the global spinlock to the calling cpu so that any
+other cpu synchronized by this method is blocked.
+<p>
+<b>rt_global_sti</b> hard enables interrupts (sti) on the calling cpu and
+releases the global lock.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_global_save_flags"></A>
+<A NAME="rt_global_save_flags_and_cli"></A>
+<A NAME="rt_global_restore_flags"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_global_save_flags, rt_global_save_flags_and_cli, rt_global_restore_flags -
+	save/restore CPU flags
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_global_save_flags (unsigned long *</B><I>flags</I><B>);</B>
+<p>
+<B>int rt_global_save_flags_and_cli (void);</B>
+<p>
+<B>void rt_global_restore_flags (unsigned long </B><I>flags</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_global_save_flags</b> saves the cpu interrupt flag (IF)
+and the global lock flag, in bits 9 and 0 of <I>flags</I>.
+<p>
+<b>rt_global_save_flags_and_cli</b> hard disables interrupts on the requesting
+CPU and returns old state of cpu interrupt flag (IF)
+and the global lock flag, in bits 9 and 0.
+<p>
+<b>rt_global_restore_flags</b> restores the cpu hard interrupt flag (IF)
+and the global lock flag as given by <I>flags</I>, freeing or acquiring
+the global lock according to the state of the global flag bit.
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+Types are inconsistent. Flags are stored in <b>int</b> as well
+as in <b>unsigned long</b>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="send_ipi_shorthand"></A>
+<A NAME="send_ipi_logical"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+send_ipi_shorthand, send_ipi_logical - send interprocessor message
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void send_ipi_shorthand (unsigned int </B><I>shorthand</I><B>,
+	int </B><I>irq</I><B>);</B>
+<p>
+<B>void send_ipi_logical (unsigned long </B><I>dest</I><B>,
+	int </B><I>irq</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>send_ipi_shorthand</b> sends an interprocessor message of <I>irq</I> to
+<ul>
+<li>all CPUs if <I>shorthand</I> is equal to APIC_DEST_ALLINC;
+<li>all but itself if <I>shorthand</I> is equal to APIC_DEST_ALLBUT;
+<li>itself if <I>shorthand</I> is equal to APIC_DEST_SELF.
+</ul>
+<p>
+<b>send_ipi_logical</b> sends an interprocessor message of <I>irq</I>
+to all CPUs defined by <I>dest</I>. <I>dest</I> is given by an unsigned long
+corresponding to a bitmask of the CPUs to be sent. It is used for local
+apics programmed in flat logical mode, so the max number of
+allowed CPUs is 8, a constraint that is valid for all functions and data
+of RTAI. The flat logical mode is set when RTAI is installed by calling
+<b>rt_mount_rtai</b>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_assign_irq_to_cpu"></A>
+<A NAME="rt_reset_irq_to_sym_mode"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_assign_irq_to_cpu, rt_reset_irq_to_sym_mode - set/reset IRQ-&gt;CPU assignment
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>int rt_assign_irq_to_cpu (int </B><I>irq</I><B>, int </B><I>cpu</I><B>);</B>
+<p>
+<B>int rt_reset_irq_to_sym_mode (int </B><I>irq</I>)<B>;</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_assign_irq_to_cpu</b> forces the assignment of the external interrupt
+<I>irq</I> to the CPU <I>cpu</I>.
+<p>
+<b>rt_reset_irq_to_sym_mode</b> resets the interrupt <I>irq</I>
+to the symmetric interrupts management. The symmetric mode distributes
+the IRQs over all the CPUs.
+<p>
+Note: These functions have effect on multiprocessor systems only.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+If there is one CPU in the system, 1 returned.
+<p>
+If there is at least 2 CPU, on success 0 is returned.
+If <i>cpu</i> is refers to a non-existent CPU, the number of CPUs is returned.
+On other failures, a negative value is returned as desribed below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        -EINVAL
+        </dt><dd>
+	<I>irq</I> is not a valid IRQ number or
+	some internal data incosistency is found.
+	</dd></dl>
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+Incostent return values. In case of 1 CPU return value should be 0 (=success);
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_request_global_irq"></A>
+<A NAME="rt_free_global_irq"></A>
+<A NAME="request_RTirq"></A>
+<A NAME="free_RTirq"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_request_global_irq, request_RTirq, rt_free_global_irq, free_RTirq -
+	install/uninstall IT service routine
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>int rt_request_global_irq (unsigned int </B><I>irq</I><B>,
+	void (*</B><I>handler</I><B>)(void));</B>
+<p>
+<B>int rt_free_global_irq (unsigned int </B><I>irq</I><B>);</B>
+<p>
+<B>int request_RTirq (unsigned int </B><I>irq</I><B>,
+	void (*</B><I>handler</I><B>)(void));</B>
+<p>
+<B>int free_RTirq (unsigned int </B><I>irq</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_request_global_irq</b> installs function <I>handler</I> as an
+interrupt service routine for IRQ level <I>irq</I>.
+<I>handler</I> is then invoked whenever interrupt number <I>irq</I> occurs.
+<BR>
+The installed handler must take care of properly
+activating any Linux handler using the same <I>irq</I> number by calling
+<b>rt_pend_linux_irq</b>.
+<p>
+<b>rt_free_global_irq</b> uninstalls the interrupt service routine.
+<p>
+<b>request_RTirq</b> and <b>free_RTirq</b> are macros defined in <b>rtai.h</b>
+and is supported only for backwards compatibility with our variant of
+RT_linux for 2.0.35. They are fully equivalent of the other two functions
+above.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        -EINVAL
+        </dt><dd>
+        <I>irq</I> is not a valid IRQ number or <I>handler</I> is NULL.
+        </dd></dl>
+        <dl><dt>
+        -EBUSY
+        </dt><dd>
+        There is already a handler of interrupt <I>irq</I>.
+        </dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_request_linux_irq"></A>
+<A NAME="rt_free_linux_irq"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_request_linux_irq, rt_free_linux_irq - install/uninstall shared Linux
+	interrupt handler
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>int rt_request_linux_irq (unsigned int </B><I>irq</I><B>,
+	void (*</B><I>handler</I><B>)(int </B><I>irq</I><B>,
+	void *</B><I>dev_id</I><B>,
+	struct pt_regs *</B><I>regs</I>)<B>,
+	char *</B><I>linux_handler_id</I><B>,
+	void *</B><I>dev_id</I><B>);</B>
+<p>
+<B>int rt_free_linux_irq (unsigned int </B><I>irq</I><B>,
+	void *</B><I>dev_id</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_request_linux_irq</b> installs function <I>handler</I> as an
+interrupt service routine for IRQ level <I>irq</I> forcing Linux to share
+the IRQ with other interrupt handlers.
+The handler is appended to any already existing Linux handler
+for the same irq and run as a Linux irq handler. In this way a real time
+application can monitor Linux interrupts handling at is will. The handler
+appears in <code>/proc/interrupts</code>.
+<BR>
+<I>linux_handler_id</I> is a name for <code>/proc/interrupts</code>.
+The parameter <I>dev_id</I> is to pass to the interrupt handler,
+in the same way as the standard Linux irq request call.
+<p>
+The interrupt service routine can be uninstalled with <b>rt_free_linux_irq</b>.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success 0 is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        -EINVAL
+        </dt><dd>
+        <I>irq</I> is not a valid IRQ number or <I>handler</I> is NULL.
+        </dd></dl>
+        <dl><dt>
+        -EBUSY
+        </dt><dd>
+        There is already a handler of interrupt <I>irq</I>.
+        </dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_pend_linux_irq"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_pend_linux_irq - make Linux service an interrupt
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_pend_linux_irq (unsigned int </B><I>irq</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_pend_linux_irq</b> appends a Linux interrupt <I>irq</I>
+for processing in Linux IRQ mode, i.e. with interrupts fully enabled..
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+<b>rt_pend_linux_irq</b> does not perform any check on <i>irq</i>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_request_srq"></A>
+<A NAME="rt_free_srq"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_request_srq, rt_free_srq - ???
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>int rt_request_srq (unsigned int </b><i>label</i><b>,
+	void (*</b><i>rtai_handler</i><b>)(void),
+	long long (*</b><i>user_handler</i><b>)(unsigned int
+		</b><i>whatever</i><b>));</b>
+<p>
+<B>int rt_free_srq (unsigned int </B><I>srq</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+???
+<p>
+<!--
+Installs a system request <I>handler</I> as a system call
+to request a service from the kernel. System request cannot be used safely
+from RTAI so you can setup a handler that receives real time requests and
+safely executes them when Linux is running. The system call can be uninstalled
+using <A HREF="#rt_free_srq">rt_free_srq</A>.
+-->
+<b>rt_free_srq</b> uninstalls the system call identified by <I>srq</I>.
+</dd></dl>
+
+<dl><dt>
+<H3>RETURN VALUE</H3>
+</dt><dd>
+On success the number of the assigned system request is returned.
+On failure a negative value is returned as described below.
+</dd></dl>
+
+<dl><dt>
+<H3>ERRORS</H3>
+</dt><dd>
+        <dl><dt>
+        -EINVAL
+        </dt><dd>
+	<i>rtai_handler</i> is NULL or <i>srq</i> is invalid.
+        </dd></dl>
+        <dl><dt>
+        -EBUSY
+        </dt><dd>
+        No free srq slot is available.
+        </dd></dl>
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_pend_linux_srq"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_pend_linux_srq - ???
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_pend_linux_srq (unsigned int </B><I>srq</I><B>);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_pend_linux_srq</b> appends a system call request <I>srq</I>
+to be used as a service request to the Linux kernel.
+<I>srq</I> is the value returned by <b>rt_request_srq</b>.
+</dd></dl>
+
+<dl><dt>
+<H3>BUGS</H3>
+</dt><dd>
+<b>rt_pend_linux_srq</b> does not perform any check on <i>irq</i>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_request_timer"></A>
+<A NAME="rt_free_timer"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_request_timer, rt_free_timer - install a timer interrupt handler
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_request_timer (void (*</B><I>handler</I><B>)(void),
+	int </B><I>tick</I><B>,
+	int </b><i>apic</i><b>);</B>
+<p>
+<B>void rt_free_timer (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_request_timer</b> requests a timer of period
+<I>tick</I> ticks, and installs the routine <I>handler</I> as a real
+time interrupt service routine for the timer.
+<br>
+Set <I>tick</I> to 0 for oneshot mode. (???)
+<br>
+If <i>apic</i> has a nonzero value the local APIC timer is used.
+Otherwise timing is based on the 8254.
+<p>
+<b>rt_free_timer</b> uninstalls the timer previously set by
+<b>rt_request_timer</b>.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+<HR ALIGN=LEFT SIZE=1 NOSHADE WIDTH="100%">
+<!-- -------------------------------------------------------- -->
+
+<A NAME="rt_mount_rtai"></A>
+<A NAME="rt_umount_rtai"></A>
+<dl><dt>
+<H3>NAME</H3>
+</dt><dd>
+rt_mount_rtai, rt_umount_rtai -
+	initialize/uninitialize real time application interface
+</dd></dl>
+
+<dl><dt>
+<H3>SYNOPSIS</H3>
+</dt><dd>
+#include "rtai.h"
+<p>
+<B>void rt_mount_rtai (void);</B>
+<p>
+<B>void rt_umount_rtai (void);</B>
+</dd></dl>
+
+<dl><dt>
+<H3>DESCRIPTION</H3>
+</dt><dd>
+<b>rt_mount_rtai</b> initializes the real time application interface,
+i.e. grabs
+anything related to the hardware, data or service, pointed by at by the
+Real Time Hardware Abstraction Layer (struct rt_hal rthal;).
+<p>
+<b>rt_umount_rtai</b> unmounts the real time application interface
+resetting Linux to its normal state.
+</dd></dl>
+
+<p align=right><A HREF="manual.html#service">[return to index]</A></p>
+
+</BODY>
+</HTML>

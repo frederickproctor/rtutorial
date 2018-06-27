@@ -1,0 +1,211 @@
+<html>
+<head>
+<title>EXAMPLE 10: DETERMINING STACK SIZE</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex09_ledclock.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex11_jitter.htm">[next]</a>
+
+<h1>Example 10: Determining Stack Size</h1>
+<p>
+This example shows how to determine the stack size needed for your
+real-time tasks. So far, we've just used a 1K stack. In general you'll
+need to determine just how much stack to allocate. Too little, and
+you'll crash your system when your functions nest too deeply. Here's
+what you see when that happens:
+<!-- text of black screen of death
+Unable to handle kernel paging request at virtual address 0001b2d6
+ printing eip:
+e0a1b396
+*pde = 00000000
+Oops: 0000
+CPU:    0
+EIP:    0010:[&lt;e0a1b396&gt;]    Not tainted
+EFLAGS: 00010212
+eax: ca0a0020   ebx: 00000004   ecx: ca0a0010   edx: 00000010
+esi: ca0a0020   edi: 0001b2d6   epb: 00000030   esp: c9a85f20
+ds: 0018   es: 0018   ss: 0018
+Process rmmod.modutils (pid: 1387, stackpage=c9a85000)
+Stack: 00000004 00000004 00000000 00000030 e0a14774 ca0a0020 e0a0b349 00001000
+       e0a2c000 00000001 00000200 e0a0f4ec e0a0f3ec e0a0f3ec 0000000c e0a0b43a
+       00000000 e0a2568b 00000200 e0a28000 fffffff0 e0a28000 c9a85f90 00000065
+Call Trace:    [&lt;e0a14774&gt;] [&lt;e0a0b349&gt;] [&lt;e0a0f4ec&gt;] [&lt;e0a0f3ec&gt;] [&lt;e0a0f3ec&gt;]
+  [&lt;e0a0b43a&gt;] [&lt;e0a2568b&gt;] [&lt;e0a28277&gt;] [&lt;c011a4f3&gt;] [&lt;c0110087&gt;] [&lt;c01088e3&gt;]
+
+Code: 3b 3f 0f 85 f2 00 00 00 39 4e f4 0f 85 e9 00 00 00 8b 56 f8
+-->
+<p>
+<img src="./bksmall.png">
+<p>
+The "Black Screen of Death". Normal Linux applications won't cause
+this, since they run in protected mode. RT code runs in privileged
+kernel space. Too little stack and you'll clobber the kernel, and see
+this screen. Time to reboot.
+<p>
+Refer to the <a
+href="../ex10_stack/stack_task.c">commented 
+source code</a> of the example for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>The stack size for a task is the space needed for its arguments, its
+stack variables, and all the variables encountered through the
+deepest series of functions it may call during the life of the
+task, including any padding for alignment of data.
+<li>To get an accurate measure of the necessary stack depth requires a
+detailed analysis of these functions, and if we ever encounter
+something for which we have no source code, we have to guess.
+<li>The
+compiler also introduces some uncertainty since it may overlap
+stacks if it determines that a function has finished referencing
+some of its stack before it calls another function. This means that
+in practice analytical stack size determination involves detailed
+detective work.
+<li>One technique to quickly estimate stack size is to initialize the
+stack with some recognizable pattern, run the task for a while, and
+look at how much of the pattern remains. That's the unused stack.
+Often this pattern is 0xDEADBEEF, a clever hex integer that is
+easily visible in hex memory dump utilities.
+<li>In the example, we initialize the unused part of the stack to
+0xDEADBEEF, run the task for while, then dump the stack and look for
+how much 0xDEADBEEF was eaten up.
+<li>Cutting to the chase, the example shows two functions that you
+call in your task code to initialize the stack at the beginning, and
+check it after your task has run for a while. These are:
+<pre>
+int rt_task_stack_init(RT_TASK * task, int pattern);
+int rt_task_stack_check(RT_TASK * task, int pattern)
+</pre>
+<li>The first function initializes the stack with the integer 'pattern' (e.g.,
+0xDEADBEEF), taking care not to clobber the part of the stack that RT
+Linux set up.
+<li>The second function takes the same pattern, looks through the
+stack for that pattern, and returns the number of unused bytes.
+<li>You
+will always want some unused bytes: if all the 0xDEADBEEF is eaten up,
+your stack ran out and you will likely clobber the Linux kernel and
+get a nasty Black Screen of Death:
+</ul>
+<h2>The Gory Details</h2>
+(This section shows the analysis that led to the example code. You
+can skip this; the example code contains the functions you'll need.)
+<ul>
+<li>To apply this technique to RTAI, we need to know how the stack is
+allocated and initialized, so we don't clobber anything RTAI has
+set up for us on our stack. Recall that a task's stack is allocated
+and initialized in 'rt_task_init()':
+<pre>
+rt_task_init(RT_TASK *task, void *rt_thread, int data,
+             int stack_size, /* here's the size, in bytes */
+             int priority, int uses_fpu, void *signal);
+</pre>
+<li>If you inspect the RTAI scheduler header file
+&lt;rtai_sched.h&gt;,
+you'll see that the RT_TASK structure contains, among other things,
+the pointers to the top and bottom of the stack: 
+<pre>
+typedef struct rt_task_struct {
+  ...
+  int *stack;
+  int *stack_bottom;
+  ...
+}
+</pre>
+<li>Further inspecting the RTAI source code, specifically
+&lt;rtai_sched.c&gt; and &lt;asm/rtai_sched.h&gt;, we can see the
+details of how RTAI sets up the task stack.
+<ul>
+<li>In 'rt_task_init()', RTAI allocates 'stack_size' bytes with
+'sched_malloc()', and sets the bottom of the stack,
+task->stack_bottom, to this memory.
+<li>The top of the stack,
+task->stack, is set to the bottom plus stack_size bytes minus 16
+bytes, rounded down to the nearest integer boundary.
+<li>5 integers are
+then pushed onto the stack.
+<br>The top integer (4 bytes) of the stack
+is set to 0.
+<br>The next integer down is set to the initial 'data'
+argument for the task.
+<br>The next integer down is set to the
+'rt_thread' code for the task.
+<br>The next integer down is set to
+0.
+<br>The next integer down is set to some RTAI startup code, and the
+stack is left pointing to this. When initializing the stack, we must
+stop short of this.
+</ul>
+<li>In our examples, we start with a stack size of 1K. If this is not enough,
+we will have strange problems which defy debugging, at which point we
+can try increasing stack size and hope the problem goes away. 
+
+<li>In the example program, the hex output (from the console, or
+/var/log/messages) shows the part of the stack used by our code when
+it is stopped:
+<pre>
+DCC2034C: 76
+DCC20348: 75
+DCC20344: 74
+DCC20340: 73
+DCC2033C: 72
+DCC20338: 71
+DCC20334: 70
+DCC20330: 6F
+DCC2032C: 6E
+DCC20328: 6D
+DCC20324: 6C
+DCC20320: 6B
+DCC2031C: 6A
+DCC20318: 69
+DCC20314: 68
+DCC20310: 67
+DCC2030C: 66
+DCC20308: 65
+DCC20304: 64
+DCC20300: DEADBEEF
+...
+DCC20020: DEADBEEF
+740 unused stack bytes
+</pre>
+<li>The bottom of the stack is at address 0xDCC20020, and it grows upward
+toward 0xDCC2034C, which is close to the top of the stack. 
+<li>Here we see
+the unused stack portion at the bottom, from integers at 0xDCC20020
+through 0xDCC20300, inclusive, or 740 bytes. This is corroborated by
+a count made from the bottom of the stack up to the first non-DEADBEEF
+occurrence.
+<li>
+The problem with this technique is that all the code paths may not
+be exercised during the run, and later your code may enter a deeper
+area that was not entered before.
+<li>Since there is no performance impact
+on the task with this technique, it may be wise to leave the stack
+initialization and checking intact in init_module() and cleanup_module(),
+respectively.
+</ul>
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex10_stack' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "Stack Testing" button.
+<p>You'll see diagnostics messages printing out.
+
+<p><a href="../ex10_stack/stack_task.c">See the Code</a>
+
+<hr>
+<a href="./ex11_jitter.htm">Next: Example 11, Measuring Timing Jitter</a>
+<p><a href="./ex09_ledclock.htm">Back: Example 9, Displaying Messages on an LED Wand Clock</a>
+
+</body>
+</html>

@@ -1,0 +1,178 @@
+<html>
+<head>
+<title>EXAMPLE 4: FIFO COMMUNICATION BETWEEN RTL AND LINUX</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+
+<a href="./ex03_variable.htm">[previous]</a>
+<a href="./tutorial.htm#index">[index]</a>
+<a href="./ex05_isr.htm">[next]</a>
+
+<h1>Example 4: FIFO Communication Between RTL and Linux</h1>
+This example shows how to set up a first-in, first out (FIFO) data
+queue for sharing data between
+real-time tasks and user-level applications. FIFOs are often used to
+connect a non-realtime human-machine interface to a real-time
+application, or to log messages to disk files. These FIFOs are
+analogous to normal Unix FIFOs, i.e., those that use a fifo special
+file created with the Unix command 'mkfifo'.
+<p>
+FIFOs are simple queues
+of raw bytes. Typically, fixed-sized data structures are written to a
+FIFO, so that the reader doesn't need to worry about message
+boundaries. In some cases variable-sized messages are written, in
+which case the reader must search for the message boundary, often a
+special character. In this example we used fixed-size messages.
+<p>
+Refer to the <a
+href="../ex04_fifo/fifo_task.c">commented real-time
+source code</a> and the <a
+href="../ex04_fifo/fifo_app.c">commented application
+source code</a> for the details.
+
+<h2>Principle of Operation</h2>
+<ul>
+<li>The RT task creates
+two FIFOs, one for commands in from the user process and one for
+status back to the user process
+<ul>
+<li>There
+are three commands: turn the speaker on, turn it off, and set the
+frequency
+<li>The status contains an echo of the command number, the frequency,
+and a heartbeat that increments each task cycle.
+</ul>
+<li>
+The periodic task just toggles the speaker port and increments
+the heartbeat.
+<ul>
+<li>Most of the work is done by a "handler" task that
+is called when the command FIFO is written by the user process.
+<li>In the handler, we enable/disable the speaker using a shared global
+variable, and reset the period of the speaker task if requested.
+<li>The handler also echoes the command and the heartbeat back to
+the user process via the status FIFO.
+</ul>
+<li>The user task prints a prompt and reads typed input signifying
+requests to turn the speaker on, off or set the frequency. When a
+command is sent, the status FIFO is read and the contents printed.
+</ul>
+
+<h2>Creating a FIFO</h2>
+<ul>
+<li>On the real-time side, a FIFO is created by calling
+<pre>
+int rtf_create (unsigned int fifo, int size);
+</pre>
+'rtf_create()' creates FIFO number 'fifo', of initial size
+'size' bytes.  'fifo' is an
+integer, 0 to RTF_NO (currently 63), that identifies the fifo on further
+operations. 'fifo' may refer an existing FIFO. In this case the
+size is adjusted if necessary. 
+<li>On the Linux side, FIFO numbers 0 to 63 are associated with
+character devices /dev/rtf0 through /dev/rtf63. These device files are
+created when you install RTAI, so they are always visible. To "create"
+a FIFO on the Linux side, use the standard Unix function 'open()', e.g.,
+<pre>
+file_descriptor = open("/dev/rtf0", O_RDONLY);
+</pre>
+The integer 'file_descriptor' is returned to you, and used to identify the
+FIFO during subsequent read or write operations. 'O_RDONLY' is a
+constant signifying that you'll only read the FIFO. Other
+possibilities are O_WRONLY and O_RDWR, for write-only and read-write,
+respectively. These are from standard Unix.
+</ul>
+
+<h2>Accessing a FIFO</h2>
+<ul>
+<li>On the real-time side, reading and writing are done using the
+'rtf_get()' and 'rtf_put()' functions, e.g.,
+<pre>
+num_read = rtf_get(0, &buffer_in, sizeof(buffer_in));
+num_written = rtf_put(1, &buffer_out, sizeof(buffer_out));
+</pre>
+You can check the return values for the actual number of bytes read or
+written, where negative numbers signify an error.
+<li>On the Linux side, reading and writing are done using the standard
+Unix 'read()' and 'write()' functions, e.g.,
+<pre>
+num_read = read(read_descriptor, &buffer_in, sizeof(buffer_in));
+num_written = write(write_descriptor, &buffer_out,
+sizeof(buffer_out));
+</pre>
+where 'read_descriptor' and 'write_descriptor' are the file
+descriptors returned to you on the previous call to 'open()'. Negative
+return values signify an error.
+</ul>
+
+<h2>FIFO Handlers</h2>
+<ul>
+<li>One optional feature of FIFOs is the "handler," a function on the
+real-time side that is called whenever a FIFO is read or written. To
+install a handler, call 'rtf_create_handler()' with the FIFO number
+and the name of the handler function.
+<li>A handler is often used in conjunction with 'rtf_get()' to process
+data acquired asynchronously from a Linux process. The installed
+handler calls 'rtf_get()' when data is present. Because the handler is
+only executed when there is activity on the FIFO, polling is not
+necessary.
+</ul>
+
+<h2>Blocking v. Non-Blocking Reads</h2>
+<ul>
+<li>In Unix, devices can be opened for either blocking- or
+non-blocking reads.
+<ul>
+<li>With a blocking read, the 'read()' function does not return if
+there is no data to be read. The calling process goes to sleep
+("blocks") until
+the 'read()' function returns later when some data is available. This
+is the default behavior.
+<li>In some situations this blocking behavior is not desirable, and
+the device can be configured so that reads are non-blocking. In this
+case, 'read()' returns 0 immediately if no characters are available.
+<li>In a real-time application, blocking is typically not desired.
+'rtf_get()' returns immediately with a 0 return value if no characters
+are available. 
+</ul>
+</ul>
+
+<h2>FIFO Uses</h2>
+FIFOs can be used for all communication between real-time tasks and
+Linux processes, but their queued nature makes them best suited for
+ordered streams of data, such as
+<ul>
+<li>messages or error diagnostics, where the message can include a
+timestamp for later analysis;
+<li>data logs for performance metrics;
+<li>or transfer of configuration information at startup, e.g., the
+contents of initialization files.
+</ul>
+<p>FIFOs are not well suited for repeatedly transferring large data
+structures whose contents only change sparsely. Shared memory is a
+better solution.
+
+<h2>Running the Demo</h2>
+To run the demo, change to the 'ex04_fifo' subdirectory of the
+top-level tutorial directory, and run the 'run' script by typing
+<pre>
+./run
+</pre>
+Alternatively, change to the top-level tutorial directory and run the
+'runall' script there by typing
+<pre>
+./runall
+</pre>
+and selecting the "FIFOs" button.
+<p>You'll hear a continuously varying tone for about 10 seconds.
+
+<p><a href="../ex04_fifo/fifo_task.c">See the Real-Time Task Code</a>
+<p><a href="../ex04_fifo/fifo_app.c">See the Linux Application Code</a>
+
+<hr>
+<a href="./ex05_isr.htm">Next: Example 5, Interrupt Service Routines</a>
+<p><a href="./ex03_variable.htm">Back: Example 3, Variable-Period Scheduling of a Single Task</a>
+
+</body>
+</html>
